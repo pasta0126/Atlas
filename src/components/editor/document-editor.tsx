@@ -58,7 +58,7 @@ export function DocumentEditor({
         <h1 className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-300">
           {frontmatter.titulo ?? document.path}
         </h1>
-        <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+        <div className="flex flex-wrap items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
           {status === "saving" && <span>Guardando…</span>}
           {status === "saved" && <span>Guardado</span>}
           {status === "error" && (
@@ -68,21 +68,21 @@ export function DocumentEditor({
             <button
               type="button"
               onClick={() => setRightTab("preview")}
-              className={`rounded-full px-3 py-1 ${rightTab === "preview" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+              className={`rounded-full px-2 py-1 sm:px-3 ${rightTab === "preview" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
             >
               Preview
             </button>
             <button
               type="button"
               onClick={() => setRightTab("historial")}
-              className={`rounded-full px-3 py-1 ${rightTab === "historial" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+              className={`rounded-full px-2 py-1 sm:px-3 ${rightTab === "historial" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
             >
               Historial
             </button>
             <button
               type="button"
               onClick={() => setRightTab("backlinks")}
-              className={`rounded-full px-3 py-1 ${rightTab === "backlinks" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+              className={`rounded-full px-2 py-1 sm:px-3 ${rightTab === "backlinks" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
             >
               Backlinks
               {document.backlinks.length > 0 && ` (${document.backlinks.length})`}
@@ -91,9 +91,10 @@ export function DocumentEditor({
           <button
             type="button"
             onClick={save}
-            className="rounded-full border border-black/[.08] px-3 py-1 hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-white/[.06]"
+            className="rounded-full bg-foreground px-3 py-1 font-medium text-background hover:bg-[#383838] dark:hover:bg-[#ccc]"
           >
-            Guardar (Ctrl+S)
+            <span className="sm:hidden">Guardar</span>
+            <span className="hidden sm:inline">Guardar (Ctrl+S)</span>
           </button>
         </div>
       </div>

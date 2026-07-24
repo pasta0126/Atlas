@@ -241,31 +241,31 @@ export function NavTree({ root }: { root: AtlasNode }) {
 
   return (
     <nav className="flex h-full flex-col overflow-y-auto p-3">
-      <div className="mb-2 flex flex-wrap gap-2 border-b border-black/[.08] pb-2 text-xs dark:border-white/[.145]">
+      <div className="mb-2 grid grid-cols-2 gap-1 border-b border-black/[.08] pb-2 text-xs dark:border-white/[.145]">
         <button
           type="button"
           onClick={handleNewDocument}
-          className="rounded border border-black/[.08] px-2 py-1 text-zinc-700 hover:bg-black/[.04] dark:border-white/[.145] dark:text-zinc-300 dark:hover:bg-white/[.06]"
+          className="rounded px-2 py-1 text-left text-zinc-600 hover:bg-black/[.04] dark:text-zinc-400 dark:hover:bg-white/[.06]"
         >
           + Documento
         </button>
         <button
           type="button"
           onClick={handleNewFolder}
-          className="rounded border border-black/[.08] px-2 py-1 text-zinc-700 hover:bg-black/[.04] dark:border-white/[.145] dark:text-zinc-300 dark:hover:bg-white/[.06]"
+          className="rounded px-2 py-1 text-left text-zinc-600 hover:bg-black/[.04] dark:text-zinc-400 dark:hover:bg-white/[.06]"
         >
           + Carpeta
         </button>
         <Link
           href="/etiquetas"
-          className="rounded border border-black/[.08] px-2 py-1 text-zinc-700 hover:bg-black/[.04] dark:border-white/[.145] dark:text-zinc-300 dark:hover:bg-white/[.06]"
+          className="rounded px-2 py-1 text-zinc-600 hover:bg-black/[.04] dark:text-zinc-400 dark:hover:bg-white/[.06]"
         >
           Etiquetas
         </Link>
         <button
           type="button"
           onClick={() => window.dispatchEvent(new CustomEvent("atlas:open-search"))}
-          className="ml-auto rounded border border-black/[.08] px-2 py-1 text-zinc-700 hover:bg-black/[.04] dark:border-white/[.145] dark:text-zinc-300 dark:hover:bg-white/[.06]"
+          className="rounded px-2 py-1 text-left text-zinc-600 hover:bg-black/[.04] dark:text-zinc-400 dark:hover:bg-white/[.06]"
         >
           Buscar (Ctrl+K)
         </button>
