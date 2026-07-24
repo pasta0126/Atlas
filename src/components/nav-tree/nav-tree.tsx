@@ -241,7 +241,7 @@ export function NavTree({ root }: { root: AtlasNode }) {
 
   return (
     <nav className="flex h-full flex-col overflow-y-auto p-3">
-      <div className="mb-2 flex gap-2 border-b border-black/[.08] pb-2 text-xs dark:border-white/[.145]">
+      <div className="mb-2 flex flex-wrap gap-2 border-b border-black/[.08] pb-2 text-xs dark:border-white/[.145]">
         <button
           type="button"
           onClick={handleNewDocument}

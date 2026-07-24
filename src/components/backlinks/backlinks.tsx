@@ -10,7 +10,7 @@ export function Backlinks({ paths }: { paths: string[] }) {
   }
 
   return (
-    <div className="overflow-y-auto p-6">
+    <div className="h-full overflow-y-auto p-6">
       <ul className="flex flex-col gap-1">
         {paths.map((backlinkPath) => (
           <li key={backlinkPath}>

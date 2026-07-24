@@ -48,7 +48,7 @@ export function Preview({ content, docPath, docPaths }: PreviewProps) {
   };
 
   return (
-    <div className="prose prose-zinc max-w-none overflow-y-auto p-6 dark:prose-invert">
+    <div className="prose prose-zinc h-full max-w-none overflow-y-auto p-6 font-serif dark:prose-invert">
       <ReactMarkdown remarkPlugins={[remarkGfm]} components={components} urlTransform={urlTransform}>
         {wikilinksToMarkdown(content)}
       </ReactMarkdown>

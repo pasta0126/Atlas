@@ -54,11 +54,11 @@ export function DocumentEditor({
 
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between border-b border-black/[.08] px-4 py-2 dark:border-white/[.145]">
+      <div className="flex flex-wrap items-center justify-between gap-y-2 border-b border-black/[.08] py-2 pl-14 pr-4 dark:border-white/[.145] sm:pl-4">
         <h1 className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-300">
           {frontmatter.titulo ?? document.path}
         </h1>
-        <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
+        <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
           {status === "saving" && <span>Guardando…</span>}
           {status === "saved" && <span>Guardado</span>}
           {status === "error" && (
@@ -98,17 +98,19 @@ export function DocumentEditor({
         </div>
       </div>
       <MetadataPanel frontmatter={frontmatter} onChange={setFrontmatter} />
-      <div className="grid flex-1 grid-cols-2 overflow-hidden">
-        <div className="overflow-hidden border-r border-black/[.08] dark:border-white/[.145]">
+      <div className="grid flex-1 grid-cols-1 overflow-y-auto sm:grid-cols-2 sm:overflow-hidden">
+        <div className="h-[55vh] overflow-hidden border-b border-black/[.08] dark:border-white/[.145] sm:h-auto sm:border-r sm:border-b-0">
           <MarkdownEditor value={content} onChange={setContent} />
         </div>
-        {rightTab === "preview" && (
-          <Preview content={content} docPath={document.path} docPaths={docPaths} />
-        )}
-        {rightTab === "historial" && (
-          <HistoryPanel key={document.path} documentPath={document.path} />
-        )}
-        {rightTab === "backlinks" && <Backlinks paths={document.backlinks} />}
+        <div className="h-[55vh] overflow-hidden sm:h-auto">
+          {rightTab === "preview" && (
+            <Preview content={content} docPath={document.path} docPaths={docPaths} />
+          )}
+          {rightTab === "historial" && (
+            <HistoryPanel key={document.path} documentPath={document.path} />
+          )}
+          {rightTab === "backlinks" && <Backlinks paths={document.backlinks} />}
+        </div>
       </div>
     </div>
   );

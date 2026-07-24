@@ -15,7 +15,7 @@ export default async function TagPage({ params }: { params: Promise<{ tag: strin
   const documents = await listDocumentsByTag(tag);
 
   return (
-    <div className="flex-1 overflow-y-auto p-6">
+    <div className="flex-1 overflow-y-auto p-6 pl-14 sm:pl-6">
       <p className="mb-1 text-xs text-zinc-500 dark:text-zinc-400">
         <Link href="/etiquetas" className="hover:underline">
           Etiquetas

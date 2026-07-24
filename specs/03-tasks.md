@@ -124,9 +124,18 @@ _Cubre: 3.7_
 
 _Cubre: requisitos no funcionales de diseño_
 
-- [ ] 9.1 Tema claro/oscuro.
-- [ ] 9.2 Tipografía y layout definitivos (revisar principio "no corporativo").
-- [ ] 9.3 Responsive básico (navegación colapsable en móvil).
+- [x] 9.1 Tema claro/oscuro: ya cubierto por `dark:` de Tailwind + preferencia de
+      sistema (`prefers-color-scheme`) en todos los componentes; verificado en
+      navegador (nav, editor CodeMirror, preview, metadatos) en ambos modos.
+- [x] 9.2 Tipografía: fuente serif humanista (`Source_Serif_4`, variable
+      `--font-content-serif` → utilidad `font-serif`) aplicada al contenido
+      renderizado (Preview), sans-serif (Geist) para el chrome de UI. Corregido
+      un `font-family: Arial` fijo en `globals.css` que pisaba silenciosamente
+      la fuente Geist cargada.
+- [x] 9.3 Responsive: `components/shell/atlas-shell.tsx` con sidebar
+      colapsable en móvil (botón hamburguesa, overlay, cierre al navegar);
+      editor/preview apilados verticalmente (en vez de dos columnas) por
+      debajo del breakpoint `sm`; toolbars y metadatos con `flex-wrap`.
 
 ## Fase 10 — Despliegue (RPi + Traefik existente)
 
