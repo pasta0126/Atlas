@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import type { AtlasNode } from "@/types/atlas";
 
@@ -10,8 +10,93 @@ function nodeHref(nodePath: string): string {
   return `/${withoutExt}`;
 }
 
+async function createDocument(folder: string, titulo: string): Promise<AtlasNode | null> {
+  const response = await fetch("/api/docs", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ folder, titulo }),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    window.alert(data?.error ?? "No se ha podido crear el documento");
+    return null;
+  }
+  return response.json();
+}
+
+async function createFolder(parent: string, nombre: string): Promise<boolean> {
+  const response = await fetch("/api/folders", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ parent, nombre }),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    window.alert(data?.error ?? "No se ha podido crear la carpeta");
+    return false;
+  }
+  return true;
+}
+
+async function movePath(from: string, to: string): Promise<boolean> {
+  const response = await fetch("/api/docs/move", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ from, to }),
+  });
+  if (!response.ok) {
+    const data = await response.json().catch(() => null);
+    window.alert(data?.error ?? "No se ha podido mover");
+    return false;
+  }
+  return true;
+}
+
+async function deleteDocument(relativePath: string): Promise<boolean> {
+  const response = await fetch(`/api/docs/${relativePath.split("/").map(encodeURIComponent).join("/")}`, {
+    method: "DELETE",
+  });
+  return response.ok;
+}
+
+async function deleteFolder(relativePath: string, force: boolean): Promise<"ok" | "not-empty" | "error"> {
+  const url = `/api/folders/${relativePath.split("/").map(encodeURIComponent).join("/")}${force ? "?force=true" : ""}`;
+  const response = await fetch(url, { method: "DELETE" });
+  if (response.ok) return "ok";
+  if (response.status === 409) return "not-empty";
+  return "error";
+}
+
+function NodeMenu({ children }: { children: React.ReactNode }) {
+  return (
+    <details className="relative shrink-0 opacity-0 group-hover:opacity-100 [&[open]]:opacity-100">
+      <summary className="cursor-pointer list-none px-1 text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">
+        ⋯
+      </summary>
+      <div className="absolute right-0 z-10 mt-1 flex flex-col gap-0.5 rounded border border-black/[.08] bg-white p-1 text-xs shadow-lg dark:border-white/[.145] dark:bg-zinc-900">
+        {children}
+      </div>
+    </details>
+  );
+}
+
+function MenuButton({ onClick, danger, children }: { onClick: () => void; danger?: boolean; children: React.ReactNode }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={`whitespace-nowrap rounded px-2 py-1 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
+        danger ? "text-red-600 dark:text-red-400" : "text-zinc-700 dark:text-zinc-300"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
+
 function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
   const pathname = usePathname();
+  const router = useRouter();
   const href = nodeHref(node.path);
   const isActive = pathname === href;
   const [open, setOpen] = useState(true);
@@ -22,12 +107,76 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
       : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
   }`;
 
+  async function handleRenameOrMove() {
+    const destino = window.prompt(`Nueva ruta para "${node.title}"`, node.path);
+    if (!destino || destino === node.path) return;
+    const wasActive = isActive;
+    const ok = await movePath(node.path, destino);
+    if (ok) {
+      if (wasActive) router.push(nodeHref(destino));
+      router.refresh();
+    }
+  }
+
+  async function handleDeleteDocument() {
+    if (!window.confirm(`¿Eliminar el documento "${node.title}"?`)) return;
+    const ok = await deleteDocument(node.path);
+    if (ok) {
+      if (isActive) router.push("/");
+      router.refresh();
+    } else {
+      window.alert("No se ha podido eliminar el documento");
+    }
+  }
+
+  async function handleDeleteFolder() {
+    if (!window.confirm(`¿Eliminar la carpeta "${node.title}" y su contenido?`)) return;
+    let result = await deleteFolder(node.path, false);
+    if (result === "not-empty") {
+      if (!window.confirm(`"${node.title}" no está vacía. ¿Eliminarla igualmente con todo su contenido?`)) {
+        return;
+      }
+      result = await deleteFolder(node.path, true);
+    }
+    if (result === "ok") {
+      if (pathname === href || pathname.startsWith(`${href}/`)) router.push("/");
+      router.refresh();
+    } else {
+      window.alert("No se ha podido eliminar la carpeta");
+    }
+  }
+
+  async function handleNewDocument() {
+    const titulo = window.prompt("Título del nuevo documento");
+    if (!titulo) return;
+    const created = await createDocument(node.path, titulo);
+    if (created) {
+      router.push(nodeHref(created.path));
+      router.refresh();
+    }
+  }
+
+  async function handleNewFolder() {
+    const nombre = window.prompt("Nombre de la nueva carpeta");
+    if (!nombre) return;
+    if (await createFolder(node.path, nombre)) {
+      setOpen(true);
+      router.refresh();
+    }
+  }
+
   if (node.type === "document") {
     return (
-      <li>
+      <li className="group flex items-center">
         <Link href={href} className={linkClassName} style={{ paddingLeft: `${depth * 0.75 + 1.25}rem` }}>
           {node.title}
         </Link>
+        <NodeMenu>
+          <MenuButton onClick={handleRenameOrMove}>Renombrar / mover</MenuButton>
+          <MenuButton onClick={handleDeleteDocument} danger>
+            Eliminar
+          </MenuButton>
+        </NodeMenu>
       </li>
     );
   }
@@ -36,7 +185,7 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
 
   return (
     <li>
-      <div className="flex items-center" style={{ paddingLeft: `${depth * 0.75}rem` }}>
+      <div className="group flex items-center" style={{ paddingLeft: `${depth * 0.75}rem` }}>
         <button
           type="button"
           onClick={() => setOpen((o) => !o)}
@@ -46,9 +195,17 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
         >
           {hasChildren ? (open ? "▾" : "▸") : "·"}
         </button>
-        <Link href={href} className={`${linkClassName} font-medium`}>
+        <Link href={href} className={`${linkClassName} flex-1 font-medium`}>
           {node.title}
         </Link>
+        <NodeMenu>
+          <MenuButton onClick={handleNewDocument}>Nuevo documento aquí</MenuButton>
+          <MenuButton onClick={handleNewFolder}>Nueva carpeta aquí</MenuButton>
+          <MenuButton onClick={handleRenameOrMove}>Renombrar / mover</MenuButton>
+          <MenuButton onClick={handleDeleteFolder} danger>
+            Eliminar
+          </MenuButton>
+        </NodeMenu>
       </div>
       {open && hasChildren && (
         <ul>
@@ -62,8 +219,44 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
 }
 
 export function NavTree({ root }: { root: AtlasNode }) {
+  const router = useRouter();
+
+  async function handleNewDocument() {
+    const titulo = window.prompt("Título del nuevo documento");
+    if (!titulo) return;
+    const created = await createDocument(".", titulo);
+    if (created) {
+      router.push(nodeHref(created.path));
+      router.refresh();
+    }
+  }
+
+  async function handleNewFolder() {
+    const nombre = window.prompt("Nombre de la nueva carpeta");
+    if (!nombre) return;
+    if (await createFolder(".", nombre)) {
+      router.refresh();
+    }
+  }
+
   return (
-    <nav className="flex flex-col gap-1 overflow-y-auto p-3">
+    <nav className="flex h-full flex-col overflow-y-auto p-3">
+      <div className="mb-2 flex gap-2 border-b border-black/[.08] pb-2 text-xs dark:border-white/[.145]">
+        <button
+          type="button"
+          onClick={handleNewDocument}
+          className="rounded border border-black/[.08] px-2 py-1 text-zinc-700 hover:bg-black/[.04] dark:border-white/[.145] dark:text-zinc-300 dark:hover:bg-white/[.06]"
+        >
+          + Documento
+        </button>
+        <button
+          type="button"
+          onClick={handleNewFolder}
+          className="rounded border border-black/[.08] px-2 py-1 text-zinc-700 hover:bg-black/[.04] dark:border-white/[.145] dark:text-zinc-300 dark:hover:bg-white/[.06]"
+        >
+          + Carpeta
+        </button>
+      </div>
       <ul>
         {(root.children ?? []).map((child) => (
           <NavNode key={child.path} node={child} depth={0} />

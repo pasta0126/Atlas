@@ -57,12 +57,15 @@ la web. Es el primer hito demostrable.
 
 _Cubre: 3.2, 3.3, criterio de aceptación 3, 8_
 
-- [ ] 4.1 UI para crear documento nuevo (a partir de plantilla) dentro de una carpeta.
-- [ ] 4.2 UI para crear carpeta (tema/subcategoría).
-- [ ] 4.3 Renombrar/mover documento y carpeta (endpoint `POST /api/docs/move` + UI,
-      drag&drop opcional).
-- [ ] 4.4 Eliminar documento/carpeta con modal de confirmación (bloquear si carpeta
-      no vacía sin confirmación explícita).
+- [x] 4.1 UI para crear documento nuevo (a partir de plantilla) dentro de una carpeta
+      (`POST /api/docs`, `lib/slug.ts`, menú "⋯" en `components/nav-tree`).
+- [x] 4.2 UI para crear carpeta (tema/subcategoría) (`POST /api/folders`).
+- [x] 4.3 Renombrar/mover documento y carpeta (`POST /api/docs/move` + UI vía
+      `window.prompt` con la ruta destino editable; sin drag&drop, queda para
+      Fase 9 si se echa en falta).
+- [x] 4.4 Eliminar documento/carpeta con confirmación (`window.confirm`;
+      `DELETE /api/docs/[...path]`, `DELETE /api/folders/[...path]` bloquea
+      carpetas no vacías salvo `?force=true`, con segunda confirmación en la UI).
 
 ## Fase 5 — Git como motor de versionado
 

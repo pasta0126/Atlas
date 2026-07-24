@@ -1,0 +1,25 @@
+import { NextResponse } from "next/server";
+import { deleteFolder } from "@/lib/fs";
+import { PathTraversalError } from "@/lib/paths";
+
+interface RouteParams {
+  params: Promise<{ path: string[] }>;
+}
+
+export async function DELETE(request: Request, { params }: RouteParams) {
+  const { path: segments } = await params;
+  const force = new URL(request.url).searchParams.get("force") === "true";
+
+  try {
+    await deleteFolder(segments.join("/"), { force });
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    if (error instanceof PathTraversalError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    if (error instanceof Error && /no está vacía/.test(error.message)) {
+      return NextResponse.json({ error: error.message }, { status: 409 });
+    }
+    return NextResponse.json({ error: "No se ha podido eliminar la carpeta" }, { status: 404 });
+  }
+}

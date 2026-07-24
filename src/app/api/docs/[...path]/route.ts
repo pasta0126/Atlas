@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getDocument, upsertDocument } from "@/lib/fs";
+import { deleteDocument, getDocument, upsertDocument } from "@/lib/fs";
 import { PathTraversalError } from "@/lib/paths";
 import type { Frontmatter } from "@/types/atlas";
 
@@ -42,5 +42,18 @@ export async function PUT(request: Request, { params }: RouteParams) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
     return NextResponse.json({ error: "No se ha podido guardar el documento" }, { status: 500 });
+  }
+}
+
+export async function DELETE(_request: Request, { params }: RouteParams) {
+  const { path: segments } = await params;
+  try {
+    await deleteDocument(toRelativePath(segments));
+    return NextResponse.json({ ok: true });
+  } catch (error) {
+    if (error instanceof PathTraversalError) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
+    return NextResponse.json({ error: "No se ha podido eliminar el documento" }, { status: 404 });
   }
 }
