@@ -71,10 +71,16 @@ _Cubre: 3.2, 3.3, criterio de aceptación 3, 8_
 
 _Cubre: 3.6, criterio de aceptación 1 y 7_
 
-- [ ] 5.1 `lib/git.ts` con `simple-git`: commit automático tras cada escritura.
-- [ ] 5.2 Endpoint `GET /api/git/history/[...path]`.
-- [ ] 5.3 Endpoint `GET /api/git/diff/[...path]`.
-- [ ] 5.4 UI: panel de historial de un documento + vista de diff.
+- [x] 5.1 `lib/git.ts` con `simple-git`: commit automático tras cada escritura
+      (crear/editar/borrar documento, mover, borrar carpeta), acotado a
+      `CONTENT_DIR` dentro del repo de la app (no asume que sea su propio
+      repo raíz). No lanza si git falla; el commit es un efecto secundario,
+      nunca bloquea el guardado.
+- [x] 5.2 Endpoint `GET /api/git/history/[...path]`.
+- [x] 5.3 Endpoint `GET /api/git/diff/[...path]?from=&to=`.
+- [x] 5.4 UI: panel de historial de un documento + vista de diff
+      (`components/history`, pestaña "Historial" junto a "Preview" en el
+      editor).
 
 ## Fase 6 — Enlaces internos y backlinks
 

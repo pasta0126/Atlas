@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { deleteDocument, getDocument, upsertDocument } from "@/lib/fs";
+import { commitChange } from "@/lib/git";
 import { PathTraversalError } from "@/lib/paths";
 import type { Frontmatter } from "@/types/atlas";
 
@@ -35,7 +36,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
   }
 
   try {
-    const document = await upsertDocument(toRelativePath(segments), frontmatter, content);
+    const relativePath = toRelativePath(segments);
+    const document = await upsertDocument(relativePath, frontmatter, content);
+    await commitChange(relativePath, `editar: ${relativePath}`);
     return NextResponse.json(document);
   } catch (error) {
     if (error instanceof PathTraversalError) {
@@ -48,7 +51,9 @@ export async function PUT(request: Request, { params }: RouteParams) {
 export async function DELETE(_request: Request, { params }: RouteParams) {
   const { path: segments } = await params;
   try {
-    await deleteDocument(toRelativePath(segments));
+    const relativePath = toRelativePath(segments);
+    await deleteDocument(relativePath);
+    await commitChange(relativePath, `eliminar: ${relativePath}`);
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof PathTraversalError) {

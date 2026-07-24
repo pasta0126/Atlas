@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { movePath } from "@/lib/fs";
+import { commitChange } from "@/lib/git";
 import { PathTraversalError } from "@/lib/paths";
 
 export async function POST(request: Request) {
@@ -13,6 +14,7 @@ export async function POST(request: Request) {
 
   try {
     await movePath(from, to);
+    await commitChange([from, to], `mover: ${from} -> ${to}`);
     return NextResponse.json({ ok: true, path: to });
   } catch (error) {
     if (error instanceof PathTraversalError) {

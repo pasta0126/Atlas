@@ -3,9 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { MarkdownEditor } from "./markdown-editor";
 import { Preview } from "@/components/preview/preview";
+import { HistoryPanel } from "@/components/history/history-panel";
 import type { AtlasDocument } from "@/types/atlas";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
+type RightTab = "preview" | "historial";
 
 function apiPathFor(documentPath: string): string {
   return `/api/docs/${documentPath.split("/").map(encodeURIComponent).join("/")}`;
@@ -14,6 +16,7 @@ function apiPathFor(documentPath: string): string {
 export function DocumentEditor({ document }: { document: AtlasDocument }) {
   const [content, setContent] = useState(document.content);
   const [status, setStatus] = useState<SaveStatus>("idle");
+  const [rightTab, setRightTab] = useState<RightTab>("preview");
 
   const save = useCallback(async () => {
     setStatus("saving");
@@ -52,6 +55,22 @@ export function DocumentEditor({ document }: { document: AtlasDocument }) {
           {status === "error" && (
             <span className="text-red-600 dark:text-red-400">Error al guardar</span>
           )}
+          <div className="flex rounded-full border border-black/[.08] p-0.5 dark:border-white/[.145]">
+            <button
+              type="button"
+              onClick={() => setRightTab("preview")}
+              className={`rounded-full px-3 py-1 ${rightTab === "preview" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+            >
+              Preview
+            </button>
+            <button
+              type="button"
+              onClick={() => setRightTab("historial")}
+              className={`rounded-full px-3 py-1 ${rightTab === "historial" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+            >
+              Historial
+            </button>
+          </div>
           <button
             type="button"
             onClick={save}
@@ -65,7 +84,11 @@ export function DocumentEditor({ document }: { document: AtlasDocument }) {
         <div className="overflow-hidden border-r border-black/[.08] dark:border-white/[.145]">
           <MarkdownEditor value={content} onChange={setContent} />
         </div>
-        <Preview content={content} />
+        {rightTab === "preview" ? (
+          <Preview content={content} />
+        ) : (
+          <HistoryPanel key={document.path} documentPath={document.path} />
+        )}
       </div>
     </div>
   );
