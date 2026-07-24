@@ -1,0 +1,9 @@
+node_modules
+.next
+.git
+atlas-content-dev
+atlas-content
+.env*
+!.env.example
+*.log
+coverage

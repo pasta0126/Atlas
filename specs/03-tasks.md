@@ -127,17 +127,18 @@ _Cubre: requisitos no funcionales de diseño_
 _Cubre: requisito de despliegue autoalojado — ver `02-design.md` §9 para el detalle
 de la infraestructura ya en marcha (Traefik, red `proxy`, DNS cdmon)_
 
-- [ ] 10.1 `Dockerfile` multi-stage sobre `node:20-alpine` (arm64), con `git`
-      instalado en el stage final.
-- [ ] 10.2 `docker-compose.yml` sin puertos publicados, unido a la red externa
+- [x] 10.1 `Dockerfile` multi-stage sobre `node:20-alpine` (arm64), con `git`
+      instalado en el stage final. `next.config.ts` con `output: "standalone"`.
+- [x] 10.2 `docker-compose.yml` sin puertos publicados, unido a la red externa
       `proxy`, con labels Traefik (`Host(atlas.northernarchive.com)`,
       `certresolver=le`, `entrypoints=websecure`), `user: "1001:1001"`, y
       volumen de **todo el repo** `~/atlas:/workspace:rw` (no solo
       `atlas-content/` — ver `02-design.md` §9, necesario para que
       `simple-git` vea el `.git` del repo).
-- [ ] 10.3 Poblar `/home/pasta0126/atlas/atlas-content/` en el host con la
-      estructura de temas real y comitearla en el repo de la app (ya **no**
-      es un repo git propio ni va gitignorada — ver `02-design.md` §1).
+- [x] 10.3 `atlas-content/` poblada con contenido mínimo (`index.md`) y
+      comiteada en el repo de la app (decisión del usuario 2026-07-24: no
+      había contenido real que migrar todavía; se irá añadiendo desde la
+      propia web una vez desplegada).
 - [x] 10.4 Alta manual del registro DNS `atlas.northernarchive.com` → `79.116.22.49`
       en el panel de cdmon (paso fuera de código, análogo al hecho para `sauron`).
       Ya hecho por el usuario (2026-07-24).
