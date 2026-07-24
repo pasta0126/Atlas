@@ -4,16 +4,23 @@ import { useCallback, useEffect, useState } from "react";
 import { MarkdownEditor } from "./markdown-editor";
 import { Preview } from "@/components/preview/preview";
 import { HistoryPanel } from "@/components/history/history-panel";
+import { Backlinks } from "@/components/backlinks/backlinks";
 import type { AtlasDocument } from "@/types/atlas";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
-type RightTab = "preview" | "historial";
+type RightTab = "preview" | "historial" | "backlinks";
 
 function apiPathFor(documentPath: string): string {
   return `/api/docs/${documentPath.split("/").map(encodeURIComponent).join("/")}`;
 }
 
-export function DocumentEditor({ document }: { document: AtlasDocument }) {
+export function DocumentEditor({
+  document,
+  docPaths,
+}: {
+  document: AtlasDocument;
+  docPaths: string[];
+}) {
   const [content, setContent] = useState(document.content);
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [rightTab, setRightTab] = useState<RightTab>("preview");
@@ -70,6 +77,14 @@ export function DocumentEditor({ document }: { document: AtlasDocument }) {
             >
               Historial
             </button>
+            <button
+              type="button"
+              onClick={() => setRightTab("backlinks")}
+              className={`rounded-full px-3 py-1 ${rightTab === "backlinks" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+            >
+              Backlinks
+              {document.backlinks.length > 0 && ` (${document.backlinks.length})`}
+            </button>
           </div>
           <button
             type="button"
@@ -84,11 +99,13 @@ export function DocumentEditor({ document }: { document: AtlasDocument }) {
         <div className="overflow-hidden border-r border-black/[.08] dark:border-white/[.145]">
           <MarkdownEditor value={content} onChange={setContent} />
         </div>
-        {rightTab === "preview" ? (
-          <Preview content={content} />
-        ) : (
+        {rightTab === "preview" && (
+          <Preview content={content} docPath={document.path} docPaths={docPaths} />
+        )}
+        {rightTab === "historial" && (
           <HistoryPanel key={document.path} documentPath={document.path} />
         )}
+        {rightTab === "backlinks" && <Backlinks paths={document.backlinks} />}
       </div>
     </div>
   );

@@ -2,6 +2,7 @@ import fsp from "node:fs/promises";
 import path from "node:path";
 import { resolveContentPath, toRelativePath } from "./paths";
 import { parseFrontmatter, serializeFrontmatter, documentTemplate } from "./frontmatter";
+import { backlinksFor } from "./links";
 import type { AtlasNode, AtlasDocument, Frontmatter } from "@/types/atlas";
 
 const MARKDOWN_EXT = ".md";
@@ -87,11 +88,43 @@ export async function resolveRouteDocument(segments: string[]): Promise<AtlasDoc
   }
 }
 
+async function collectDocumentPaths(absoluteDir: string): Promise<string[]> {
+  const entries = await fsp.readdir(absoluteDir, { withFileTypes: true });
+  const paths: string[] = [];
+  for (const entry of entries) {
+    if (entry.name.startsWith(".")) continue;
+    const absoluteEntry = path.join(absoluteDir, entry.name);
+    if (entry.isDirectory()) {
+      paths.push(...(await collectDocumentPaths(absoluteEntry)));
+    } else if (entry.isFile() && entry.name.endsWith(MARKDOWN_EXT)) {
+      paths.push(toRelativePath(absoluteEntry));
+    }
+  }
+  return paths;
+}
+
+/** Rutas relativas de todos los documentos `.md` del atlas. */
+export async function listDocumentPaths(): Promise<string[]> {
+  return collectDocumentPaths(resolveContentPath("."));
+}
+
+async function readAllDocuments(): Promise<{ path: string; content: string }[]> {
+  const paths = await listDocumentPaths();
+  return Promise.all(
+    paths.map(async (relativePath) => ({
+      path: relativePath,
+      content: await fsp.readFile(resolveContentPath(relativePath), "utf-8"),
+    })),
+  );
+}
+
 export async function getDocument(relativePath: string): Promise<AtlasDocument> {
   const absolutePath = resolveContentPath(relativePath);
   const raw = await fsp.readFile(absolutePath, "utf-8");
   const { frontmatter, content } = parseFrontmatter(raw);
-  return { path: toRelativePath(absolutePath), frontmatter, content };
+  const docPath = toRelativePath(absolutePath);
+  const backlinks = backlinksFor(docPath, await readAllDocuments());
+  return { path: docPath, frontmatter, content, backlinks };
 }
 
 export async function createDocument(

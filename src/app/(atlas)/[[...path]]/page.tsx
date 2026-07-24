@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { resolveRouteDocument } from "@/lib/fs";
+import { listDocumentPaths, resolveRouteDocument } from "@/lib/fs";
 import { DocumentEditor } from "@/components/editor/document-editor";
 
 export default async function DocumentPage({
@@ -14,5 +14,7 @@ export default async function DocumentPage({
     notFound();
   }
 
-  return <DocumentEditor key={document.path} document={document} />;
+  const docPaths = await listDocumentPaths();
+
+  return <DocumentEditor key={document.path} document={document} docPaths={docPaths} />;
 }

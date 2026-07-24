@@ -19,4 +19,5 @@ export interface AtlasDocument {
   path: string;
   frontmatter: Frontmatter;
   content: string;
+  backlinks: string[];
 }

@@ -86,11 +86,15 @@ _Cubre: 3.6, criterio de aceptación 1 y 7_
 
 _Cubre: 3.3 (wikilinks), 3.4, criterio de aceptación 5_
 
-- [ ] 6.1 `lib/links.ts`: parseo de wikilinks `[[doc]]` y enlaces relativos en el
-      contenido markdown.
-- [ ] 6.2 Resolución de wikilinks a rutas reales al renderizar preview (con estado
-      visual de "enlace roto" si no existe el destino).
-- [ ] 6.3 Cálculo de backlinks (escaneo del atlas) y componente `backlinks` en la UI.
+- [x] 6.1 `lib/links.ts`: parseo de wikilinks `[[doc]]`/`[[doc|alias]]` y enlaces
+      relativos `.md` en el contenido markdown.
+- [x] 6.2 Resolución de wikilinks/enlaces relativos a rutas reales al renderizar
+      preview (`components/preview/preview.tsx`, `<a>` custom + `urlTransform` de
+      `react-markdown`), con estado visual de "enlace roto" (span rojo con tooltip)
+      si no existe el destino.
+- [x] 6.3 Cálculo de backlinks (`lib/fs.ts#getDocument` vía `lib/links.ts`,
+      escaneo de todo el atlas) y pestaña "Backlinks" junto a Preview/Historial
+      en el editor (`components/backlinks`).
 
 ## Fase 7 — Búsqueda
 
