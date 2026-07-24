@@ -113,9 +113,12 @@ _Cubre: 3.5, criterio de aceptación 6_
 
 _Cubre: 3.7_
 
-- [ ] 8.1 UI de edición de frontmatter (título, fecha, etiquetas, relacionados) en
-      el panel del editor.
-- [ ] 8.2 Vista de listado de documentos filtrado por etiqueta.
+- [x] 8.1 UI de edición de frontmatter (`components/editor/metadata-panel.tsx`):
+      título, fecha, etiquetas y relacionados editables en el panel del
+      editor, incluidos en el `PUT` al guardar.
+- [x] 8.2 Vista de listado de documentos filtrado por etiqueta: `/etiquetas`
+      (todas las etiquetas con contador) y `/etiquetas/[tag]` (documentos con
+      esa etiqueta), vía `lib/tags.ts` + `/api/tags`, `/api/tags/[tag]`.
 
 ## Fase 9 — Pulido UI/UX
 

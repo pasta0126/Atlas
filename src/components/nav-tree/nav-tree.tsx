@@ -256,6 +256,12 @@ export function NavTree({ root }: { root: AtlasNode }) {
         >
           + Carpeta
         </button>
+        <Link
+          href="/etiquetas"
+          className="rounded border border-black/[.08] px-2 py-1 text-zinc-700 hover:bg-black/[.04] dark:border-white/[.145] dark:text-zinc-300 dark:hover:bg-white/[.06]"
+        >
+          Etiquetas
+        </Link>
         <button
           type="button"
           onClick={() => window.dispatchEvent(new CustomEvent("atlas:open-search"))}

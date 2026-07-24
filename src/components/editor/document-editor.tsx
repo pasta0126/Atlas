@@ -2,10 +2,11 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { MarkdownEditor } from "./markdown-editor";
+import { MetadataPanel } from "./metadata-panel";
 import { Preview } from "@/components/preview/preview";
 import { HistoryPanel } from "@/components/history/history-panel";
 import { Backlinks } from "@/components/backlinks/backlinks";
-import type { AtlasDocument } from "@/types/atlas";
+import type { AtlasDocument, Frontmatter } from "@/types/atlas";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 type RightTab = "preview" | "historial" | "backlinks";
@@ -22,6 +23,7 @@ export function DocumentEditor({
   docPaths: string[];
 }) {
   const [content, setContent] = useState(document.content);
+  const [frontmatter, setFrontmatter] = useState<Frontmatter>(document.frontmatter);
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [rightTab, setRightTab] = useState<RightTab>("preview");
 
@@ -31,13 +33,13 @@ export function DocumentEditor({
       const response = await fetch(apiPathFor(document.path), {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ frontmatter: document.frontmatter, content }),
+        body: JSON.stringify({ frontmatter, content }),
       });
       setStatus(response.ok ? "saved" : "error");
     } catch {
       setStatus("error");
     }
-  }, [content, document.frontmatter, document.path]);
+  }, [content, frontmatter, document.path]);
 
   useEffect(() => {
     function handleKeydown(event: KeyboardEvent) {
@@ -54,7 +56,7 @@ export function DocumentEditor({
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex items-center justify-between border-b border-black/[.08] px-4 py-2 dark:border-white/[.145]">
         <h1 className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          {document.frontmatter.titulo ?? document.path}
+          {frontmatter.titulo ?? document.path}
         </h1>
         <div className="flex items-center gap-3 text-xs text-zinc-500 dark:text-zinc-400">
           {status === "saving" && <span>Guardando…</span>}
@@ -95,6 +97,7 @@ export function DocumentEditor({
           </button>
         </div>
       </div>
+      <MetadataPanel frontmatter={frontmatter} onChange={setFrontmatter} />
       <div className="grid flex-1 grid-cols-2 overflow-hidden">
         <div className="overflow-hidden border-r border-black/[.08] dark:border-white/[.145]">
           <MarkdownEditor value={content} onChange={setContent} />
