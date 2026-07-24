@@ -142,15 +142,16 @@ de la infraestructura ya en marcha (Traefik, red `proxy`, DNS cdmon)_
 - [x] 10.4 Alta manual del registro DNS `atlas.northernarchive.com` → `79.116.22.49`
       en el panel de cdmon (paso fuera de código, análogo al hecho para `sauron`).
       Ya hecho por el usuario (2026-07-24).
-- [ ] 10.5 Levantar el stack (`docker compose up -d`) y verificar: certificado TLS
-      emitido por Let's Encrypt, login funcionando, lectura/escritura sobre
-      `atlas-content` con permisos correctos (uid 1001), commits automáticos
-      apareciendo en `git log` del repo.
-- [ ] 10.6 Documentar el flujo de actualización en producción (`git pull --rebase`
-      antes de reconstruir, para reaplicar los commits automáticos de
-      contenido sin conflicto — ver `02-design.md` §9) y, si se quiere doble
-      respaldo, un `git push` periódico desde la RPi al remoto
-      `pasta0126/Atlas` (cron o manual).
+- [x] 10.5 Stack levantado (`scripts/deploy.sh` → `docker compose up -d`) y
+      verificado en 2026-07-24: certificado TLS de Let's Encrypt (`HTTP/2 307`
+      en `https://atlas.northernarchive.com`), login funcionando (usuario real
+      `pasta0126`), lectura/escritura sobre `atlas-content` con permisos
+      correctos (`uid 1001`, `git status` limpio tras el PUT), commit
+      automático (`editar: index.md`) visible en `git log` del repo raíz.
+- [x] 10.6 `scripts/deploy.sh` documenta y automatiza el flujo: `git pull
+      --rebase` antes de `docker compose build && up -d`, para reaplicar los
+      commits automáticos de contenido sin conflicto (ver `02-design.md` §9).
+      Pendiente si se quiere: `git push` periódico de respaldo (cron/manual).
 - [ ] 10.7 Actualizar `~/infra/ROADMAP.md` (o crear nota equivalente) registrando
       la nueva app y el subdominio dado de alta, siguiendo la convención ya usada
       ahí para `sauron`.
