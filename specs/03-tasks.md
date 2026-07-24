@@ -9,7 +9,7 @@ documento) antes de añadir funciones transversales (búsqueda, git, backlinks).
 - [x] 0.1 Inicializar proyecto Next.js (TypeScript, App Router, Tailwind).
 - [x] 0.2 Configurar `.env.example` con `CONTENT_DIR`, `AUTH_USER`,
       `AUTH_PASSWORD_HASH`, `SESSION_SECRET`.
-- [ ] 0.3 Crear carpeta de contenido de desarrollo (`atlas-content-dev/`, gitignored)
+- [x] 0.3 Crear carpeta de contenido de desarrollo (`atlas-content-dev/`, gitignored)
       con 2-3 temas de ejemplo, para no depender del atlas real durante el desarrollo.
 - [x] 0.4 Configurar lint/format (ESLint + Prettier) y scripts de `package.json`.
 
@@ -39,12 +39,16 @@ _Cubre: 3.1_
 
 _Cubre: 3.2, 3.3 (parcial), criterio de aceptación 2-4_
 
-- [ ] 3.1 Endpoint `GET /api/tree`.
-- [ ] 3.2 Endpoint `GET /api/docs/[...path]` y `PUT /api/docs/[...path]`.
-- [ ] 3.3 Componente árbol de navegación (`components/nav-tree`).
-- [ ] 3.4 Componente editor (CodeMirror 6) + preview (`remark`/`react-markdown`).
-- [ ] 3.5 Página de documento: layout árbol + editor + preview, guardar con `Ctrl+S`.
-- [ ] 3.6 Manejo de `index.md` como página de entrada de carpeta.
+- [x] 3.1 Endpoint `GET /api/tree`.
+- [x] 3.2 Endpoint `GET /api/docs/[...path]` y `PUT /api/docs/[...path]`
+      (`upsertDocument` en `lib/fs.ts`, crea o sobrescribe).
+- [x] 3.3 Componente árbol de navegación (`components/nav-tree`).
+- [x] 3.4 Componente editor (CodeMirror 6 vía `@uiw/react-codemirror`) + preview
+      (`react-markdown` + `remark-gfm`).
+- [x] 3.5 Página de documento: layout árbol + editor + preview, guardar con
+      `Ctrl+S` (`app/(atlas)/[[...path]]/page.tsx` + `app/(atlas)/layout.tsx`).
+- [x] 3.6 Manejo de `index.md` como página de entrada de carpeta
+      (`lib/fs.ts#resolveRouteDocument`).
 
 **Checkpoint**: en este punto ya se puede navegar, abrir y editar documentos desde
 la web. Es el primer hito demostrable.

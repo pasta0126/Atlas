@@ -66,6 +66,27 @@ async function buildNode(absolutePath: string): Promise<AtlasNode> {
   };
 }
 
+/**
+ * Resuelve una ruta de navegación (segmentos de la URL, p. ej. desde
+ * app/(atlas)/[[...path]]) al documento real: si los segmentos ya apuntan a
+ * un `.md`, se usa tal cual; si no, se interpreta como carpeta y se busca su
+ * `index.md`.
+ */
+export async function resolveRouteDocument(segments: string[]): Promise<AtlasDocument> {
+  const routePath = segments.join("/");
+  const candidate = routePath === "" ? INDEX_FILE : routePath;
+
+  if (candidate.endsWith(MARKDOWN_EXT)) {
+    return getDocument(candidate);
+  }
+
+  try {
+    return await getDocument(path.join(candidate, INDEX_FILE));
+  } catch {
+    return getDocument(`${candidate}${MARKDOWN_EXT}`);
+  }
+}
+
 export async function getDocument(relativePath: string): Promise<AtlasDocument> {
   const absolutePath = resolveContentPath(relativePath);
   const raw = await fsp.readFile(absolutePath, "utf-8");
@@ -95,6 +116,18 @@ export async function updateDocument(
   if (!(await pathExists(absolutePath))) {
     throw new Error(`El documento no existe: ${relativePath}`);
   }
+  await fsp.writeFile(absolutePath, serializeFrontmatter(frontmatter, content), "utf-8");
+  return getDocument(relativePath);
+}
+
+/** Crea o sobrescribe un documento (usado por la API de guardado, PUT /api/docs/[...path]). */
+export async function upsertDocument(
+  relativePath: string,
+  frontmatter: Frontmatter,
+  content: string,
+): Promise<AtlasDocument> {
+  const absolutePath = resolveContentPath(relativePath);
+  await fsp.mkdir(path.dirname(absolutePath), { recursive: true });
   await fsp.writeFile(absolutePath, serializeFrontmatter(frontmatter, content), "utf-8");
   return getDocument(relativePath);
 }

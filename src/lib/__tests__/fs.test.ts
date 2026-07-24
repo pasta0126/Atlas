@@ -8,10 +8,12 @@ import {
   getDocument,
   createDocument,
   updateDocument,
+  upsertDocument,
   deleteDocument,
   createFolder,
   deleteFolder,
   movePath,
+  resolveRouteDocument,
 } from "../fs";
 
 describe("fs", () => {
@@ -69,6 +71,50 @@ describe("fs", () => {
       await createDocument("personal/identidad.md", "Identidad");
       await deleteDocument("personal/identidad.md");
       await expect(getDocument("personal/identidad.md")).rejects.toThrow();
+    });
+  });
+
+  describe("upsertDocument", () => {
+    it("crea el documento si no existe", async () => {
+      const doc = await upsertDocument("personal/identidad.md", { titulo: "Identidad" }, "# Hola");
+      expect(doc.content).toContain("# Hola");
+    });
+
+    it("sobrescribe el documento si ya existe", async () => {
+      await upsertDocument("personal/identidad.md", { titulo: "Identidad" }, "# Hola");
+      const updated = await upsertDocument(
+        "personal/identidad.md",
+        { titulo: "Identidad", etiquetas: ["x"] },
+        "# Adiós",
+      );
+      expect(updated.content).toContain("# Adiós");
+      expect(updated.frontmatter.etiquetas).toEqual(["x"]);
+    });
+  });
+
+  describe("resolveRouteDocument", () => {
+    it("resuelve el índice raíz cuando no hay segmentos", async () => {
+      await createDocument("index.md", "Inicio");
+      const doc = await resolveRouteDocument([]);
+      expect(doc.path).toBe("index.md");
+    });
+
+    it("resuelve un documento cuando los segmentos incluyen el .md", async () => {
+      await createDocument("personal/identidad.md", "Identidad");
+      const doc = await resolveRouteDocument(["personal", "identidad.md"]);
+      expect(doc.path).toBe(path.join("personal", "identidad.md"));
+    });
+
+    it("resuelve el index.md de una carpeta cuando los segmentos no tienen extensión", async () => {
+      await createDocument("personal/index.md", "Personal");
+      const doc = await resolveRouteDocument(["personal"]);
+      expect(doc.path).toBe(path.join("personal", "index.md"));
+    });
+
+    it("si no hay index.md, prueba <segmentos>.md como documento", async () => {
+      await createDocument("personal/identidad.md", "Identidad");
+      const doc = await resolveRouteDocument(["personal", "identidad"]);
+      expect(doc.path).toBe(path.join("personal", "identidad.md"));
     });
   });
 
