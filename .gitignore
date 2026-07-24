@@ -34,8 +34,9 @@ yarn-error.log*
 .env*
 !.env.example
 
-# carpeta de contenido de desarrollo (datos de ejemplo, no código)
+# carpeta de contenido (repo git propio, no forma parte del repo de la app)
 /atlas-content-dev
+/atlas-content
 
 # vercel
 .vercel

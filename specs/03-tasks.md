@@ -119,10 +119,12 @@ de la infraestructura ya en marcha (Traefik, red `proxy`, DNS cdmon)_
 - [ ] 10.2 `docker-compose.yml` sin puertos publicados, unido a la red externa
       `proxy`, con labels Traefik (`Host(atlas.northernarchive.com)`,
       `certresolver=le`, `entrypoints=websecure`) y `user: "1001:1001"`.
-- [ ] 10.3 Crear `/home/pasta0126/atlas-content` en el host (fuera de este repo),
+- [ ] 10.3 Crear `/home/pasta0126/atlas/atlas-content` en el host (dentro de la
+      carpeta del repo de la app, pero fuera de su repo git — gitignorada),
       inicializarlo como repo git propio, con la estructura de temas real.
-- [ ] 10.4 Alta manual del registro DNS `atlas.northernarchive.com` → `79.116.22.49`
+- [x] 10.4 Alta manual del registro DNS `atlas.northernarchive.com` → `79.116.22.49`
       en el panel de cdmon (paso fuera de código, análogo al hecho para `sauron`).
+      Ya hecho por el usuario (2026-07-24).
 - [ ] 10.5 Levantar el stack (`docker compose up -d`) y verificar: certificado TLS
       emitido por Let's Encrypt, login funcionando, lectura/escritura sobre
       `atlas-content` con permisos correctos (uid 1001).
