@@ -167,9 +167,10 @@ de la infraestructura ya en marcha (Traefik, red `proxy`, DNS cdmon)_
       --rebase` antes de `docker compose build && up -d`, para reaplicar los
       commits automáticos de contenido sin conflicto (ver `02-design.md` §9).
       Pendiente si se quiere: `git push` periódico de respaldo (cron/manual).
-- [ ] 10.7 Actualizar `~/infra/ROADMAP.md` (o crear nota equivalente) registrando
-      la nueva app y el subdominio dado de alta, siguiendo la convención ya usada
-      ahí para `sauron`.
+- [x] 10.7 `~/infra/ROADMAP.md` actualizado con la entrada de
+      `atlas.northernarchive.com` (repo, infraestructura, decisión de
+      contenido en el mismo repo, hallazgo del escape `$$` de Docker Compose
+      para futuras apps).
 
 ---
 
