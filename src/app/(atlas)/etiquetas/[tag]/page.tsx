@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { listDocumentsByTag } from "@/lib/tags";
 
+// Ver nota en etiquetas/page.tsx: contenido dinámico, no prerenderizable.
+export const dynamic = "force-dynamic";
+
 function docHref(path: string): string {
   const withoutExt = path.endsWith(".md") ? path.slice(0, -3) : path;
   return `/${withoutExt}`;

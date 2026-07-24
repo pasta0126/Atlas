@@ -1,6 +1,11 @@
 import Link from "next/link";
 import { listTags } from "@/lib/tags";
 
+// El contenido vive en CONTENT_DIR (filesystem montado en runtime, no
+// disponible en build time) y puede cambiar en cualquier escritura — no
+// tiene sentido prerenderizarlo estáticamente.
+export const dynamic = "force-dynamic";
+
 export default async function TagsPage() {
   const tags = await listTags();
 
