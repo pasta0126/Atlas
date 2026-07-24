@@ -10,6 +10,10 @@ import type { AtlasDocument, Frontmatter } from "@/types/atlas";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 type RightTab = "preview" | "historial" | "backlinks";
+// En móvil solo se muestra una zona a la vez (editor o la pestaña
+// seleccionada); en escritorio (sm+) ambas conviven en dos columnas y este
+// estado se ignora.
+type MobileView = "editor" | "right";
 
 function apiPathFor(documentPath: string): string {
   return `/api/docs/${documentPath.split("/").map(encodeURIComponent).join("/")}`;
@@ -26,6 +30,12 @@ export function DocumentEditor({
   const [frontmatter, setFrontmatter] = useState<Frontmatter>(document.frontmatter);
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [rightTab, setRightTab] = useState<RightTab>("preview");
+  const [mobileView, setMobileView] = useState<MobileView>("right");
+
+  function showRightTab(tab: RightTab) {
+    setRightTab(tab);
+    setMobileView("right");
+  }
 
   const save = useCallback(async () => {
     setStatus("saving");
@@ -67,22 +77,29 @@ export function DocumentEditor({
           <div className="flex rounded-full border border-black/[.08] p-0.5 dark:border-white/[.145]">
             <button
               type="button"
-              onClick={() => setRightTab("preview")}
-              className={`rounded-full px-2 py-1 sm:px-3 ${rightTab === "preview" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+              onClick={() => setMobileView("editor")}
+              className={`rounded-full px-2 py-1 sm:hidden ${mobileView === "editor" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={() => showRightTab("preview")}
+              className={`rounded-full px-2 py-1 sm:px-3 ${mobileView === "right" && rightTab === "preview" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
             >
               Preview
             </button>
             <button
               type="button"
-              onClick={() => setRightTab("historial")}
-              className={`rounded-full px-2 py-1 sm:px-3 ${rightTab === "historial" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+              onClick={() => showRightTab("historial")}
+              className={`rounded-full px-2 py-1 sm:px-3 ${mobileView === "right" && rightTab === "historial" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
             >
               Historial
             </button>
             <button
               type="button"
-              onClick={() => setRightTab("backlinks")}
-              className={`rounded-full px-2 py-1 sm:px-3 ${rightTab === "backlinks" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+              onClick={() => showRightTab("backlinks")}
+              className={`rounded-full px-2 py-1 sm:px-3 ${mobileView === "right" && rightTab === "backlinks" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
             >
               Backlinks
               {document.backlinks.length > 0 && ` (${document.backlinks.length})`}
@@ -99,11 +116,13 @@ export function DocumentEditor({
         </div>
       </div>
       <MetadataPanel frontmatter={frontmatter} onChange={setFrontmatter} />
-      <div className="grid flex-1 grid-cols-1 overflow-y-auto sm:grid-cols-2 sm:overflow-hidden">
-        <div className="h-[55vh] overflow-hidden border-b border-black/[.08] dark:border-white/[.145] sm:h-auto sm:border-r sm:border-b-0">
+      <div className="flex flex-1 flex-col overflow-hidden sm:grid sm:grid-cols-2">
+        <div
+          className={`${mobileView === "editor" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex sm:border-r sm:border-black/[.08] sm:dark:border-white/[.145]`}
+        >
           <MarkdownEditor value={content} onChange={setContent} />
         </div>
-        <div className="h-[55vh] overflow-hidden sm:h-auto">
+        <div className={`${mobileView === "right" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex`}>
           {rightTab === "preview" && (
             <Preview content={content} docPath={document.path} docPaths={docPaths} />
           )}
