@@ -18,8 +18,9 @@ function parseList(value: string): string[] {
 }
 
 const fieldClassName =
-  "rounded border border-black/[.08] bg-transparent px-2 py-1 text-sm outline-none dark:border-white/[.145]";
-const labelClassName = "text-xs text-zinc-500 dark:text-zinc-400";
+  "min-w-0 flex-1 rounded border border-black/[.08] bg-transparent px-2 py-1 text-sm outline-none dark:border-white/[.145]";
+const labelClassName = "shrink-0 whitespace-nowrap text-xs text-zinc-500 dark:text-zinc-400";
+const fieldWrapperClassName = "flex items-center gap-2";
 
 export function MetadataPanel({
   frontmatter,
@@ -46,8 +47,8 @@ export function MetadataPanel({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 border-b border-black/[.08] px-4 py-3 dark:border-white/[.145] sm:grid-cols-4">
-      <label className="flex flex-col gap-1">
+    <div className="grid grid-cols-2 gap-x-3 gap-y-2 border-b border-black/[.08] px-4 py-2 dark:border-white/[.145] sm:grid-cols-4">
+      <label className={fieldWrapperClassName}>
         <span className={labelClassName}>Título</span>
         <input
           type="text"
@@ -56,7 +57,7 @@ export function MetadataPanel({
           className={fieldClassName}
         />
       </label>
-      <label className="flex flex-col gap-1">
+      <label className={fieldWrapperClassName}>
         <span className={labelClassName}>Fecha</span>
         <input
           type="date"
@@ -65,7 +66,7 @@ export function MetadataPanel({
           className={fieldClassName}
         />
       </label>
-      <label className="flex flex-col gap-1">
+      <label className={fieldWrapperClassName}>
         <span className={labelClassName}>Etiquetas</span>
         <input
           type="text"
@@ -76,7 +77,7 @@ export function MetadataPanel({
           className={fieldClassName}
         />
       </label>
-      <label className="flex flex-col gap-1">
+      <label className={fieldWrapperClassName}>
         <span className={labelClassName}>Relacionados</span>
         <input
           type="text"
