@@ -8,7 +8,7 @@
 | Servidor                  | RPi 4 (aarch64, DietPi) en `192.168.1.10`, ya en producción con Traefik                                                      | Es el mismo host que sirve `northernarchive.com` y `sauron.northernarchive.com`. La app debe encajar en esa infraestructura existente, no crear una paralela. |
 | Reverse proxy / TLS       | Traefik v3.7 ya desplegado (`~/infra/traefik`), red docker externa `proxy`, resolver ACME `le` (HTTP-01)                     | Reutilizar lo que ya funciona; no montar Nginx/Caddy propios ni gestionar certificados en la app.                                                             |
 | Persistencia de contenido | Carpeta de archivos `.md` versionada con git                                                                                 | Legibilidad, portabilidad, historial gratis vía git, cero acoplamiento a una BD.                                                                              |
-| Relación app/contenido    | Repos git separados (el contenido tiene su propio historial, independiente del código), pero `CONTENT_DIR` vive como subcarpeta *dentro* de la carpeta del repo de la app en el host (`~/atlas/atlas-content`), no como hermana fuera de ella | El contenido no se mezcla con el código de la app (commits, historial y `.gitignore` separados), pero mantenerlo bajo `~/atlas/` deja todo lo persistente (código versionado + contenido versionado) en un único directorio del host, coherente con cómo ya se organiza en desarrollo (`atlas-content-dev/` dentro del propio repo). |
+| Relación app/contenido    | Un único repo git: `CONTENT_DIR` en producción (`atlas-content/`) es una subcarpeta trackeada dentro del mismo repo que el código de la app, no un repo separado ni gitignorada | Decisión explícita del usuario (repo `pasta0126/Atlas` en GitHub es privado, así que no hay riesgo de exposición pública). Simplifica el despliegue: un solo `.git`, un solo remoto, sin gestionar credenciales/remoto adicionales para el contenido. En **desarrollo**, en cambio, `atlas-content-dev/` sigue siendo un repo git propio y gitignorado (son datos de ejemplo desechables, no el contenido real). |
 | Stack                     | Next.js 14+ (App Router) + TypeScript                                                                                        | Full-stack en un solo proyecto (UI + API routes), buen soporte de despliegue autoalojado (Node server / Docker), ecosistema maduro para un mantenedor único.  |
 | Base de datos             | Ninguna en v1                                                                                                                | Todo el estado vive en el sistema de archivos + git. Menos infraestructura que mantener en un servidor doméstico.                                             |
 | Autenticación             | Sesión propia con cookie firmada (usuario/contraseña únicos por env vars)                                                    | Un solo usuario; no se justifica OAuth/next-auth completo.                                                                                                    |
@@ -81,7 +81,7 @@ atlas/                          # repo de la app (este repo)
 │   └── types/
 ├── .env.example                 # CONTENT_DIR, AUTH_USER, AUTH_PASSWORD_HASH, SESSION_SECRET
 ├── atlas-content-dev/            # contenido de ejemplo para desarrollo, gitignorado, su propio repo git
-├── atlas-content/                 # ⚠️ solo en producción, gitignorado del repo de la app, su propio repo git
+├── atlas-content/                 # ⚠️ solo en producción, trackeado en ESTE MISMO repo
 │   ├── README.md
 │   ├── personal/
 │   │   ├── index.md
@@ -91,15 +91,23 @@ atlas/                          # repo de la app (este repo)
 └── package.json
 ```
 
-`CONTENT_DIR` apunta, en desarrollo, a la carpeta de ejemplo `./atlas-content-dev`;
-en producción, a `./atlas-content`, es decir, a `/home/pasta0126/atlas/atlas-content`
-en la RPi (mismo host que ya sirve `northernarchive.com` y `sauron`). En ambos
-casos es una carpeta **dentro** de la carpeta del repo de la app, pero **fuera**
-del repo git de la app (listada en su `.gitignore`, igual que `atlas-content-dev`)
-y con su propio repositorio git independiente. Mantenerla anidada en vez de como
-carpeta hermana simplifica el despliegue: basta con un bind mount de
-`~/atlas/atlas-content` para persistir el contenido, sin rutas adicionales en el
-host. Dentro del contenedor se monta como volumen bind en `/content`.
+`CONTENT_DIR` apunta, en desarrollo, a la carpeta de ejemplo `./atlas-content-dev`
+(gitignorada, con su propio repo git independiente, desechable); en producción, a
+`./atlas-content`, es decir, a `/home/pasta0126/atlas/atlas-content` en la RPi
+(mismo host que ya sirve `northernarchive.com` y `sauron`). A diferencia de
+`atlas-content-dev`, la carpeta `atlas-content` de producción **no** está
+gitignorada ni tiene su propio `.git`: es una subcarpeta trackeada dentro del
+mismo repo git que el código de la app (ver decisión en §1). `lib/git.ts`
+(Fase 5) ejecuta sus commits automáticos en ese mismo repo, acotados a los
+archivos bajo `CONTENT_DIR` — el historial de notas queda entreverado con el
+historial de desarrollo de la app en el mismo `git log`, lo cual es aceptable
+porque el repo (`pasta0126/Atlas`) es privado.
+
+**Implicación en el despliegue**: como `atlas-content/` no tiene su propio
+`.git`, los comandos de `simple-git` necesitan ver el `.git` del repo de la
+app, que vive en la raíz del proyecto (`~/atlas/.git`), no dentro de
+`atlas-content/`. Por tanto el volumen de Docker debe montar la carpeta del
+**repo completo** (`~/atlas`), no solo `atlas-content/` — ver §9.
 
 ## 4. Modelo de datos (sin BD — todo derivado del filesystem)
 
@@ -172,10 +180,18 @@ verifica la cookie de sesión.
 ## 7. Git como motor de versionado
 
 - Cada operación de escritura desde la API termina en:
-  `git add <archivo>` → `git commit -m "<verbo>: <ruta>"` (p. ej. `editar: personal/pensamientos/identidad.md`).
-- Los commits se hacen con un autor fijo configurable (nombre/email del usuario) vía env vars.
-- El historial y diff se leen directamente de `git log`/`git diff` sobre el archivo,
-  sin duplicar esa información en ningún otro sitio.
+  `git add <archivo>` → `git commit -m "<verbo>: <ruta>"` (p. ej. `editar: personal/pensamientos/identidad.md`),
+  ejecutado con `simple-git` sobre el mismo repo del proyecto (`lib/git.ts`
+  resuelve el repo a partir de `CONTENT_DIR`, sin asumir que sea su propio
+  repo raíz — ver §1 y §3).
+- Los commits se hacen con un autor fijo configurable (nombre/email del usuario) vía env vars
+  (`GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`), para distinguirlos en el log de los
+  commits normales de desarrollo de la app.
+- El historial y diff se leen directamente de `git log`/`git diff` acotado a la
+  ruta del archivo (`git log -- <ruta>`), sin duplicar esa información en
+  ningún otro sitio.
+- Si no hay nada que commitear (p. ej. crear una carpeta vacía, o guardar sin
+  cambios reales), la operación no genera un commit vacío.
 
 ## 8. UI/UX — principios de diseño
 
@@ -228,12 +244,25 @@ Inventario relevante del servidor (RPi 4, aarch64, DietPi v10.5.2, `192.168.1.10
 - **`docker-compose.yml` del proyecto**: sin `ports:` publicados; se une a la red
   externa `proxy` (`networks: { proxy: { external: true } }`) y expone el puerto
   interno de Next.js (3000) solo dentro de esa red, vía las labels de arriba.
-- **Volumen de contenido**: bind mount `~/atlas/atlas-content:/content:rw` —
-  subcarpeta dentro de la propia carpeta del repo de la app en el host, no una
-  ruta hermana fuera de ella (ver §1 y §3) —, con `CONTENT_DIR=/content`. El
-  contenedor debe correr con `user: "1001:1001"` (uid/gid de `pasta0126` en el
-  host) para que
-  los commits de git y los archivos creados no queden con permisos de root.
+- **Volumen de contenido**: bind mount de **todo el repo**, `~/atlas:/workspace:rw`
+  (no solo la subcarpeta `atlas-content/`), con `CONTENT_DIR=/workspace/atlas-content`.
+  Es necesario montar el repo completo y no únicamente la subcarpeta de
+  contenido porque `atlas-content/` ya no tiene su propio `.git` (ver §1/§3):
+  los comandos de `simple-git` necesitan ver `/workspace/.git` para poder
+  hacer commit. El código de la app que ejecuta el contenedor sigue viniendo
+  de la imagen (`/app`, no del volumen); el volumen solo aporta persistencia
+  al repo (incluido su historial) entre reinicios/despliegues del contenedor.
+  El contenedor debe correr con `user: "1001:1001"` (uid/gid de `pasta0126` en el
+  host) para que los commits de git y los archivos creados no queden con
+  permisos de root.
+- **Actualizar la app en producción**: como el propio `~/atlas` en la RPi
+  acumula commits automáticos de contenido además del código, el flujo de
+  despliegue recomendado es `git pull --rebase` (no `git pull` a secas) antes
+  de reconstruir la imagen, para reaplicar esos commits locales de contenido
+  encima de los cambios de código que lleguen del remoto sin generar merges
+  espurios. Como los commits automáticos solo tocan archivos bajo
+  `atlas-content/` y los de desarrollo solo tocan `src/`/`specs/`/etc., no
+  debería haber conflictos de rutas en la práctica.
 - **Imagen aarch64**: `Dockerfile` multi-stage sobre `node:20-alpine` (soporta
   `linux/arm64` de forma nativa). En el stage final instalar `git`
   (`apk add --no-cache git`), imprescindible porque `lib/git.ts` invoca el binario

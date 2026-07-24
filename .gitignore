@@ -34,9 +34,11 @@ yarn-error.log*
 .env*
 !.env.example
 
-# carpeta de contenido (repo git propio, no forma parte del repo de la app)
+# contenido de ejemplo para desarrollo (repo git propio, independiente de este repo)
 /atlas-content-dev
-/atlas-content
+
+# nota: /atlas-content (contenido real de producción) SÍ se trackea en este
+# repo a propósito — ver specs/02-design.md §1
 
 # vercel
 .vercel

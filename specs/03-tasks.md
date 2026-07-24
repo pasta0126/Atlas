@@ -121,18 +121,25 @@ de la infraestructura ya en marcha (Traefik, red `proxy`, DNS cdmon)_
       instalado en el stage final.
 - [ ] 10.2 `docker-compose.yml` sin puertos publicados, unido a la red externa
       `proxy`, con labels Traefik (`Host(atlas.northernarchive.com)`,
-      `certresolver=le`, `entrypoints=websecure`) y `user: "1001:1001"`.
-- [ ] 10.3 Crear `/home/pasta0126/atlas/atlas-content` en el host (dentro de la
-      carpeta del repo de la app, pero fuera de su repo git — gitignorada),
-      inicializarlo como repo git propio, con la estructura de temas real.
+      `certresolver=le`, `entrypoints=websecure`), `user: "1001:1001"`, y
+      volumen de **todo el repo** `~/atlas:/workspace:rw` (no solo
+      `atlas-content/` — ver `02-design.md` §9, necesario para que
+      `simple-git` vea el `.git` del repo).
+- [ ] 10.3 Poblar `/home/pasta0126/atlas/atlas-content/` en el host con la
+      estructura de temas real y comitearla en el repo de la app (ya **no**
+      es un repo git propio ni va gitignorada — ver `02-design.md` §1).
 - [x] 10.4 Alta manual del registro DNS `atlas.northernarchive.com` → `79.116.22.49`
       en el panel de cdmon (paso fuera de código, análogo al hecho para `sauron`).
       Ya hecho por el usuario (2026-07-24).
 - [ ] 10.5 Levantar el stack (`docker compose up -d`) y verificar: certificado TLS
       emitido por Let's Encrypt, login funcionando, lectura/escritura sobre
-      `atlas-content` con permisos correctos (uid 1001).
-- [ ] 10.6 Documentar backup: `git remote` de `atlas-content` a un repositorio
-      privado (GitHub/GitLab) como respaldo remoto, además del historial local.
+      `atlas-content` con permisos correctos (uid 1001), commits automáticos
+      apareciendo en `git log` del repo.
+- [ ] 10.6 Documentar el flujo de actualización en producción (`git pull --rebase`
+      antes de reconstruir, para reaplicar los commits automáticos de
+      contenido sin conflicto — ver `02-design.md` §9) y, si se quiere doble
+      respaldo, un `git push` periódico desde la RPi al remoto
+      `pasta0126/Atlas` (cron o manual).
 - [ ] 10.7 Actualizar `~/infra/ROADMAP.md` (o crear nota equivalente) registrando
       la nueva app y el subdominio dado de alta, siguiendo la convención ya usada
       ahí para `sauron`.
