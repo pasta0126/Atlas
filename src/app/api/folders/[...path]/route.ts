@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { deleteFolder } from "@/lib/fs";
 import { commitChange } from "@/lib/git";
 import { PathTraversalError } from "@/lib/paths";
+import { invalidateSearchIndex } from "@/lib/search-index";
 
 interface RouteParams {
   params: Promise<{ path: string[] }>;
@@ -15,6 +16,7 @@ export async function DELETE(request: Request, { params }: RouteParams) {
   try {
     await deleteFolder(relativePath, { force });
     await commitChange(relativePath, `eliminar carpeta: ${relativePath}`);
+    invalidateSearchIndex();
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof PathTraversalError) {

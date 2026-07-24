@@ -100,11 +100,14 @@ _Cubre: 3.3 (wikilinks), 3.4, criterio de aceptación 5_
 
 _Cubre: 3.5, criterio de aceptación 6_
 
-- [ ] 7.1 `lib/search-index.ts`: construir índice en memoria (MiniSearch/FlexSearch)
-      al arrancar, actualizar incrementalmente en cada escritura.
-- [ ] 7.2 Endpoint `GET /api/search`.
-- [ ] 7.3 UI de búsqueda (command palette tipo `Ctrl+K`) con resultados por
-      título/ruta/contenido/etiqueta.
+- [x] 7.1 `lib/search-index.ts`: índice en memoria con MiniSearch, construido de
+      forma perezosa e invalidado (reconstrucción completa, no incremental —
+      ver comentario en el propio fichero) en cada escritura desde las rutas
+      de `/api/docs*` y `/api/folders/[...path]`.
+- [x] 7.2 Endpoint `GET /api/search?q=`.
+- [x] 7.3 UI de búsqueda: command palette `Ctrl+K` (`components/search`),
+      resultados por título/ruta/contenido con snippet, navegación con
+      teclado (↑/↓/Enter) y botón "Buscar (Ctrl+K)" en el árbol.
 
 ## Fase 8 — Metadatos y etiquetas
 

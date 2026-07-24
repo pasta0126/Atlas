@@ -256,6 +256,13 @@ export function NavTree({ root }: { root: AtlasNode }) {
         >
           + Carpeta
         </button>
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent("atlas:open-search"))}
+          className="ml-auto rounded border border-black/[.08] px-2 py-1 text-zinc-700 hover:bg-black/[.04] dark:border-white/[.145] dark:text-zinc-300 dark:hover:bg-white/[.06]"
+        >
+          Buscar (Ctrl+K)
+        </button>
       </div>
       <ul>
         {(root.children ?? []).map((child) => (

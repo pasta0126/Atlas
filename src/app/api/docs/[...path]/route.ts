@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { deleteDocument, getDocument, upsertDocument } from "@/lib/fs";
 import { commitChange } from "@/lib/git";
 import { PathTraversalError } from "@/lib/paths";
+import { invalidateSearchIndex } from "@/lib/search-index";
 import type { Frontmatter } from "@/types/atlas";
 
 interface RouteParams {
@@ -39,6 +40,7 @@ export async function PUT(request: Request, { params }: RouteParams) {
     const relativePath = toRelativePath(segments);
     const document = await upsertDocument(relativePath, frontmatter, content);
     await commitChange(relativePath, `editar: ${relativePath}`);
+    invalidateSearchIndex();
     return NextResponse.json(document);
   } catch (error) {
     if (error instanceof PathTraversalError) {
@@ -54,6 +56,7 @@ export async function DELETE(_request: Request, { params }: RouteParams) {
     const relativePath = toRelativePath(segments);
     await deleteDocument(relativePath);
     await commitChange(relativePath, `eliminar: ${relativePath}`);
+    invalidateSearchIndex();
     return NextResponse.json({ ok: true });
   } catch (error) {
     if (error instanceof PathTraversalError) {

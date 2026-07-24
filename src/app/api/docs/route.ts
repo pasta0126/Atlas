@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createDocument } from "@/lib/fs";
 import { commitChange } from "@/lib/git";
 import { PathTraversalError } from "@/lib/paths";
+import { invalidateSearchIndex } from "@/lib/search-index";
 import { slugify } from "@/lib/slug";
 
 export async function POST(request: Request) {
@@ -23,6 +24,7 @@ export async function POST(request: Request) {
   try {
     const document = await createDocument(relativePath, titulo);
     await commitChange(relativePath, `crear: ${relativePath}`);
+    invalidateSearchIndex();
     return NextResponse.json(document, { status: 201 });
   } catch (error) {
     if (error instanceof PathTraversalError) {

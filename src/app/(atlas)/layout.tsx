@@ -1,5 +1,6 @@
 import { readTree } from "@/lib/fs";
 import { NavTree } from "@/components/nav-tree/nav-tree";
+import { SearchPalette } from "@/components/search/search-palette";
 
 export default async function AtlasLayout({ children }: { children: React.ReactNode }) {
   const tree = await readTree();
@@ -12,6 +13,7 @@ export default async function AtlasLayout({ children }: { children: React.ReactN
       <main className="flex flex-1 flex-col overflow-hidden bg-white dark:bg-zinc-950">
         {children}
       </main>
+      <SearchPalette />
     </div>
   );
 }

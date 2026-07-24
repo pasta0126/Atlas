@@ -118,6 +118,20 @@ async function readAllDocuments(): Promise<{ path: string; content: string }[]> 
   );
 }
 
+/** Todos los documentos del atlas con su frontmatter ya parseado (usado por el índice de búsqueda). */
+export async function readAllDocumentsParsed(): Promise<
+  { path: string; frontmatter: Frontmatter; content: string }[]
+> {
+  const paths = await listDocumentPaths();
+  return Promise.all(
+    paths.map(async (relativePath) => {
+      const raw = await fsp.readFile(resolveContentPath(relativePath), "utf-8");
+      const { frontmatter, content } = parseFrontmatter(raw);
+      return { path: relativePath, frontmatter, content };
+    }),
+  );
+}
+
 export async function getDocument(relativePath: string): Promise<AtlasDocument> {
   const absolutePath = resolveContentPath(relativePath);
   const raw = await fsp.readFile(absolutePath, "utf-8");
