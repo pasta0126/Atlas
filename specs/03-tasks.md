@@ -6,34 +6,34 @@ documento) antes de añadir funciones transversales (búsqueda, git, backlinks).
 
 ## Fase 0 — Setup del proyecto
 
-- [ ] 0.1 Inicializar proyecto Next.js (TypeScript, App Router, Tailwind).
-- [ ] 0.2 Configurar `.env.example` con `CONTENT_DIR`, `AUTH_USER`,
+- [x] 0.1 Inicializar proyecto Next.js (TypeScript, App Router, Tailwind).
+- [x] 0.2 Configurar `.env.example` con `CONTENT_DIR`, `AUTH_USER`,
       `AUTH_PASSWORD_HASH`, `SESSION_SECRET`.
 - [ ] 0.3 Crear carpeta de contenido de desarrollo (`atlas-content-dev/`, gitignored)
       con 2-3 temas de ejemplo, para no depender del atlas real durante el desarrollo.
-- [ ] 0.4 Configurar lint/format (ESLint + Prettier) y scripts de `package.json`.
+- [x] 0.4 Configurar lint/format (ESLint + Prettier) y scripts de `package.json`.
 
 ## Fase 1 — Acceso a datos (capa `lib/`)
 
 _Cubre: 3.2, 3.3, 3.7_
 
-- [ ] 1.1 `lib/fs.ts`: leer árbol de `CONTENT_DIR`, resolver rutas de forma segura
+- [x] 1.1 `lib/fs.ts`: leer árbol de `CONTENT_DIR`, resolver rutas de forma segura
       (bloquear path traversal fuera de `CONTENT_DIR`).
-- [ ] 1.2 `lib/frontmatter.ts`: parsear/serializar frontmatter con `gray-matter`.
-- [ ] 1.3 Funciones de creación/edición/borrado/movimiento de documentos y carpetas
+- [x] 1.2 `lib/frontmatter.ts`: parsear/serializar frontmatter con `gray-matter`.
+- [x] 1.3 Funciones de creación/edición/borrado/movimiento de documentos y carpetas
       sobre el filesystem.
-- [ ] 1.4 Tests unitarios de la capa de acceso a datos (casos: crear, mover, borrar,
+- [x] 1.4 Tests unitarios de la capa de acceso a datos (casos: crear, mover, borrar,
       intento de path traversal, carpeta no vacía).
 
 ## Fase 2 — Autenticación
 
 _Cubre: 3.1_
 
-- [ ] 2.1 `lib/auth.ts`: verificación de credenciales contra env vars (hash bcrypt).
-- [ ] 2.2 Endpoint `POST /api/auth/login` y `POST /api/auth/logout`.
-- [ ] 2.3 Middleware de Next.js que protege todas las rutas salvo `/login` y
-      `/api/auth/login`.
-- [ ] 2.4 Página de login (UI mínima).
+- [x] 2.1 `lib/auth.ts`: verificación de credenciales contra env vars (hash bcrypt).
+- [x] 2.2 Endpoint `POST /api/auth/login` y `POST /api/auth/logout`.
+- [x] 2.3 Proxy de Next.js (`src/proxy.ts`, antes "middleware") que protege todas
+      las rutas salvo `/login` y `/api/auth/login`.
+- [x] 2.4 Página de login (UI mínima).
 
 ## Fase 3 — Vertical funcional mínima (leer y editar un documento)
 
