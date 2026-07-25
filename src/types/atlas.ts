@@ -1,4 +1,4 @@
-export type NodeType = "folder" | "document";
+export type NodeType = "folder" | "document" | "file";
 
 export interface AtlasNode {
   path: string;

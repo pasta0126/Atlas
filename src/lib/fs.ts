@@ -43,6 +43,9 @@ async function buildNode(absolutePath: string): Promise<AtlasNode> {
   const relativePath = toRelativePath(absolutePath) || ".";
 
   if (!stat.isDirectory()) {
+    if (!path.basename(absolutePath).endsWith(MARKDOWN_EXT)) {
+      return { path: relativePath, type: "file", title: path.basename(absolutePath) };
+    }
     const title =
       (await readFrontmatterTitle(absolutePath)) ?? humanize(path.basename(absolutePath));
     return { path: relativePath, type: "document", title };
@@ -54,7 +57,7 @@ async function buildNode(absolutePath: string): Promise<AtlasNode> {
   const children: AtlasNode[] = [];
   for (const entry of entries.sort((a, b) => a.name.localeCompare(b.name))) {
     if (entry.name.startsWith(".") || entry.name === INDEX_FILE) continue;
-    if (entry.isDirectory() || (entry.isFile() && entry.name.endsWith(MARKDOWN_EXT))) {
+    if (entry.isDirectory() || entry.isFile()) {
       children.push(await buildNode(path.join(absolutePath, entry.name)));
     }
   }

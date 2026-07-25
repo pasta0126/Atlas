@@ -10,8 +10,8 @@ if [ ! -f .env.production ]; then
   exit 1
 fi
 
-echo "==> git pull --rebase (reaplica commits automáticos de contenido)"
-git pull --rebase
+echo "==> git pull"
+git pull
 
 echo "==> docker compose build"
 docker compose build

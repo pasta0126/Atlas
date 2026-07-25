@@ -172,6 +172,14 @@ de la infraestructura ya en marcha (Traefik, red `proxy`, DNS cdmon)_
       contenido en el mismo repo, hallazgo del escape `$$` de Docker Compose
       para futuras apps).
 
+> **Nota (2026-07-25)**: la decisión de 10.2/10.3 (contenido como subcarpeta
+> trackeada en el mismo repo que la app) se revirtió. El contenido real ahora
+> vive en `vedlvm`, un repo git independiente en paralelo a `atlas` (ver
+> `02-design.md` §1/§3/§9 actualizados). `docker-compose.yml` monta
+> `~/vedlvm:/content:rw` con `CONTENT_DIR=/content`, y `scripts/deploy.sh` ya
+> no necesita `--rebase`. Pendiente: normalizar la estructura/nombres dentro
+> de `vedlvm` (fuera del alcance de este repo).
+
 ---
 
 **Siguiente paso sugerido**: confirmar esta spec y empezar por la Fase 0 + Fase 1,

@@ -8,7 +8,7 @@
 | Servidor                  | RPi 4 (aarch64, DietPi) en `192.168.1.10`, ya en producción con Traefik                                                      | Es el mismo host que sirve `northernarchive.com` y `sauron.northernarchive.com`. La app debe encajar en esa infraestructura existente, no crear una paralela. |
 | Reverse proxy / TLS       | Traefik v3.7 ya desplegado (`~/infra/traefik`), red docker externa `proxy`, resolver ACME `le` (HTTP-01)                     | Reutilizar lo que ya funciona; no montar Nginx/Caddy propios ni gestionar certificados en la app.                                                             |
 | Persistencia de contenido | Carpeta de archivos `.md` versionada con git                                                                                 | Legibilidad, portabilidad, historial gratis vía git, cero acoplamiento a una BD.                                                                              |
-| Relación app/contenido    | Un único repo git: `CONTENT_DIR` en producción (`atlas-content/`) es una subcarpeta trackeada dentro del mismo repo que el código de la app, no un repo separado ni gitignorada | Decisión explícita del usuario (repo `pasta0126/Atlas` en GitHub es privado, así que no hay riesgo de exposición pública). Simplifica el despliegue: un solo `.git`, un solo remoto, sin gestionar credenciales/remoto adicionales para el contenido. En **desarrollo**, en cambio, `atlas-content-dev/` sigue siendo un repo git propio y gitignorado (son datos de ejemplo desechables, no el contenido real). |
+| Relación app/contenido    | Dos repos git independientes: `atlas` (este repo, código) y `vedlvm` (contenido real, repo propio en paralelo, p. ej. `~/vedlvm`). `CONTENT_DIR` solo apunta a la ruta, sin asumir nada sobre su estructura interna | Decisión revisada del usuario (2026-07-25): el contenido pasa a vivir en su propio repo (`vedlvm`), separado del código de la app. `lib/git.ts` ya operaba `simple-git` directamente sobre `CONTENT_DIR`, así que no hace falta que ese directorio esté dentro del repo de la app — cualquier repo git válido (o ni siquiera un repo) sirve. En **desarrollo**, `atlas-content-dev/` sigue existiendo como sandbox descartable con datos de ejemplo, pero el flujo normal apunta `CONTENT_DIR` directamente a `vedlvm`. La estructura interna de `vedlvm` (nombres de carpetas, convenciones) se normalizará más adelante; por ahora la app debe funcionar igual sin importar cómo esté organizado. |
 | Stack                     | Next.js 14+ (App Router) + TypeScript                                                                                        | Full-stack en un solo proyecto (UI + API routes), buen soporte de despliegue autoalojado (Node server / Docker), ecosistema maduro para un mantenedor único.  |
 | Base de datos             | Ninguna en v1                                                                                                                | Todo el estado vive en el sistema de archivos + git. Menos infraestructura que mantener en un servidor doméstico.                                             |
 | Autenticación             | Sesión propia con cookie firmada (usuario/contraseña únicos por env vars)                                                    | Un solo usuario; no se justifica OAuth/next-auth completo.                                                                                                    |
@@ -38,11 +38,11 @@
                      └─────────────┬─────────────┘
                                    │
                      ┌─────────────▼─────────────┐
-                     │  CONTENT_DIR (repo git)     │
-                     │  atlas-content/             │
-                     │   ├── personal/             │
-                     │   ├── tecnologia/            │
-                     │   └── cultura/                │
+                     │  CONTENT_DIR (repo git      │
+                     │  independiente: vedlvm)     │
+                     │   ├── 100 doc/               │
+                     │   ├── 200 projectes/          │
+                     │   └── .../                    │
                      └────────────────────────────┘
 ```
 
@@ -81,33 +81,27 @@ atlas/                          # repo de la app (este repo)
 │   └── types/
 ├── .env.example                 # CONTENT_DIR, AUTH_USER, AUTH_PASSWORD_HASH, SESSION_SECRET
 ├── atlas-content-dev/            # contenido de ejemplo para desarrollo, gitignorado, su propio repo git
-├── atlas-content/                 # ⚠️ solo en producción, trackeado en ESTE MISMO repo
-│   ├── README.md
-│   ├── personal/
-│   │   ├── index.md
-│   │   └── pensamientos/
-│   ├── tecnologia/
-│   └── cultura/
 └── package.json
+
+vedlvm/                          # repo de contenido real, independiente, en paralelo a atlas/
+├── 100 doc/
+├── 200 projectes/
+└── ...
 ```
 
 `CONTENT_DIR` apunta, en desarrollo, a la carpeta de ejemplo `./atlas-content-dev`
-(gitignorada, con su propio repo git independiente, desechable); en producción, a
-`./atlas-content`, es decir, a `/home/pasta0126/atlas/atlas-content` en la RPi
-(mismo host que ya sirve `northernarchive.com` y `sauron`). A diferencia de
-`atlas-content-dev`, la carpeta `atlas-content` de producción **no** está
-gitignorada ni tiene su propio `.git`: es una subcarpeta trackeada dentro del
-mismo repo git que el código de la app (ver decisión en §1). `lib/git.ts`
-(Fase 5) ejecuta sus commits automáticos en ese mismo repo, acotados a los
-archivos bajo `CONTENT_DIR` — el historial de notas queda entreverado con el
-historial de desarrollo de la app en el mismo `git log`, lo cual es aceptable
-porque el repo (`pasta0126/Atlas`) es privado.
+(gitignorada, con su propio repo git independiente, desechable) o, si se quiere
+trabajar contra datos reales, directamente a `~/vedlvm`. En producción apunta a
+`~/vedlvm` en la RPi (mismo host que ya sirve `northernarchive.com` y `sauron`).
+`vedlvm` es un repo git completamente independiente del repo de la app
+(`atlas`): tiene su propio `.git`, su propio remoto y su propio historial. La
+app no asume nada sobre la estructura interna de `CONTENT_DIR` más allá de que
+existe y es legible/escribible — la normalización de nombres y carpetas dentro
+de `vedlvm` es un trabajo posterior, independiente de este repo.
 
-**Implicación en el despliegue**: como `atlas-content/` no tiene su propio
-`.git`, los comandos de `simple-git` necesitan ver el `.git` del repo de la
-app, que vive en la raíz del proyecto (`~/atlas/.git`), no dentro de
-`atlas-content/`. Por tanto el volumen de Docker debe montar la carpeta del
-**repo completo** (`~/atlas`), no solo `atlas-content/` — ver §9.
+**Implicación en el despliegue**: como `vedlvm` tiene su propio `.git`, el
+volumen de Docker solo necesita montar `~/vedlvm` (no el repo completo de la
+app) — ver §9.
 
 ## 4. Modelo de datos (sin BD — todo derivado del filesystem)
 
@@ -244,25 +238,19 @@ Inventario relevante del servidor (RPi 4, aarch64, DietPi v10.5.2, `192.168.1.10
 - **`docker-compose.yml` del proyecto**: sin `ports:` publicados; se une a la red
   externa `proxy` (`networks: { proxy: { external: true } }`) y expone el puerto
   interno de Next.js (3000) solo dentro de esa red, vía las labels de arriba.
-- **Volumen de contenido**: bind mount de **todo el repo**, `~/atlas:/workspace:rw`
-  (no solo la subcarpeta `atlas-content/`), con `CONTENT_DIR=/workspace/atlas-content`.
-  Es necesario montar el repo completo y no únicamente la subcarpeta de
-  contenido porque `atlas-content/` ya no tiene su propio `.git` (ver §1/§3):
-  los comandos de `simple-git` necesitan ver `/workspace/.git` para poder
-  hacer commit. El código de la app que ejecuta el contenedor sigue viniendo
-  de la imagen (`/app`, no del volumen); el volumen solo aporta persistencia
-  al repo (incluido su historial) entre reinicios/despliegues del contenedor.
-  El contenedor debe correr con `user: "1001:1001"` (uid/gid de `pasta0126` en el
-  host) para que los commits de git y los archivos creados no queden con
-  permisos de root.
-- **Actualizar la app en producción**: como el propio `~/atlas` en la RPi
-  acumula commits automáticos de contenido además del código, el flujo de
-  despliegue recomendado es `git pull --rebase` (no `git pull` a secas) antes
-  de reconstruir la imagen, para reaplicar esos commits locales de contenido
-  encima de los cambios de código que lleguen del remoto sin generar merges
-  espurios. Como los commits automáticos solo tocan archivos bajo
-  `atlas-content/` y los de desarrollo solo tocan `src/`/`specs/`/etc., no
-  debería haber conflictos de rutas en la práctica.
+- **Volumen de contenido**: bind mount solo del repo de contenido,
+  `~/vedlvm:/content:rw`, con `CONTENT_DIR=/content`. Como `vedlvm` tiene su
+  propio `.git`, no hace falta montar nada del repo de la app: el código sigue
+  viniendo de la imagen (`/app`), y el volumen solo aporta persistencia al
+  repo de contenido (incluido su historial) entre reinicios/despliegues del
+  contenedor. El contenedor debe correr con `user: "1001:1001"` (uid/gid de
+  `pasta0126` en el host) para que los commits de git y los archivos creados
+  no queden con permisos de root.
+- **Actualizar la app en producción**: como `atlas` y `vedlvm` son ahora repos
+  separados, actualizar el código (`git pull` en `~/atlas` + reconstruir
+  imagen) y los commits automáticos de contenido (que viven en `~/vedlvm`) ya
+  no interfieren entre sí — no hace falta `--rebase` ni preocuparse por
+  conflictos de rutas cruzadas.
 - **Imagen aarch64**: `Dockerfile` multi-stage sobre `node:20-alpine` (soporta
   `linux/arm64` de forma nativa). En el stage final instalar `git`
   (`apk add --no-cache git`), imprescindible porque `lib/git.ts` invoca el binario

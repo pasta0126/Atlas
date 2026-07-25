@@ -7,9 +7,9 @@ services:
     env_file:
       - .env.production
     environment:
-      CONTENT_DIR: /workspace/atlas-content
+      CONTENT_DIR: /content
     volumes:
-      - ./:/workspace:rw
+      - /home/pasta0126/vedlvm:/content:rw
     networks:
       - proxy
     labels:

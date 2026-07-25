@@ -37,9 +37,6 @@ yarn-error.log*
 # contenido de ejemplo para desarrollo (repo git propio, independiente de este repo)
 /atlas-content-dev
 
-# nota: /atlas-content (contenido real de producción) SÍ se trackea en este
-# repo a propósito — ver specs/02-design.md §1
-
 # vercel
 .vercel
 

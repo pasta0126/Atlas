@@ -10,6 +10,38 @@ function nodeHref(nodePath: string): string {
   return `/${withoutExt}`;
 }
 
+const FILE_ICONS: Record<string, string> = {
+  pdf: "📕",
+  png: "🖼️",
+  jpg: "🖼️",
+  jpeg: "🖼️",
+  gif: "🖼️",
+  svg: "🖼️",
+  ico: "🖼️",
+  psd: "🖼️",
+  json: "🔧",
+  yml: "⚙️",
+  yaml: "⚙️",
+  sh: "💻",
+  ps1: "💻",
+  py: "💻",
+  azw3: "📚",
+  epub: "📚",
+  kdbx: "🔒",
+  pages: "📄",
+};
+
+function fileIcon(title: string): string {
+  const ext = title.includes(".") ? title.split(".").pop()!.toLowerCase() : "";
+  return FILE_ICONS[ext] ?? "📎";
+}
+
+function nodeIcon(node: AtlasNode, open?: boolean): string {
+  if (node.type === "folder") return open ? "📂" : "📁";
+  if (node.type === "document") return "📄";
+  return fileIcon(node.title);
+}
+
 async function createDocument(folder: string, titulo: string): Promise<AtlasNode | null> {
   const response = await fetch("/api/docs", {
     method: "POST",
@@ -99,11 +131,20 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
   const router = useRouter();
   const href = nodeHref(node.path);
   const isActive = pathname === href;
-  const [open, setOpen] = useState(true);
+  const isAncestorOfActive = pathname === `/${node.path}` || pathname.startsWith(`/${node.path}/`);
+  const [manualOpen, setManualOpen] = useState<boolean | null>(null);
+  const [wasAncestor, setWasAncestor] = useState(isAncestorOfActive);
+  // Cuando la ruta activa entra bajo esta carpeta, se olvida cualquier
+  // colapso manual previo para que el árbol siempre revele el fichero actual.
+  if (isAncestorOfActive !== wasAncestor) {
+    setWasAncestor(isAncestorOfActive);
+    if (isAncestorOfActive) setManualOpen(null);
+  }
+  const open = manualOpen ?? isAncestorOfActive;
 
-  const linkClassName = `block truncate rounded px-2 py-1 text-sm ${
+  const linkClassName = `flex items-center gap-1.5 truncate rounded px-2 py-1 text-sm ${
     isActive
-      ? "bg-zinc-200 font-medium text-black dark:bg-zinc-800 dark:text-zinc-50"
+      ? "bg-zinc-200 font-medium text-black ring-1 ring-inset ring-zinc-400 dark:bg-zinc-800 dark:text-zinc-50 dark:ring-zinc-600"
       : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
   }`;
 
@@ -160,16 +201,30 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
     const nombre = window.prompt("Nombre de la nueva carpeta");
     if (!nombre) return;
     if (await createFolder(node.path, nombre)) {
-      setOpen(true);
+      setManualOpen(true);
       router.refresh();
     }
+  }
+
+  if (node.type === "file") {
+    return (
+      <li
+        className="flex items-center gap-1.5 truncate rounded px-2 py-1 text-sm text-zinc-400 dark:text-zinc-600"
+        style={{ paddingLeft: `${depth * 0.75 + 1.25}rem` }}
+        title={`${node.title} (no es un documento Markdown, no se puede abrir)`}
+      >
+        <span aria-hidden>{nodeIcon(node)}</span>
+        <span className="truncate">{node.title}</span>
+      </li>
+    );
   }
 
   if (node.type === "document") {
     return (
       <li className="group flex items-center">
         <Link href={href} className={linkClassName} style={{ paddingLeft: `${depth * 0.75 + 1.25}rem` }}>
-          {node.title}
+          <span aria-hidden>{nodeIcon(node)}</span>
+          <span className="truncate">{node.title}</span>
         </Link>
         <NodeMenu>
           <MenuButton onClick={handleRenameOrMove}>Renombrar / mover</MenuButton>
@@ -188,7 +243,7 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
       <div className="group flex items-center" style={{ paddingLeft: `${depth * 0.75}rem` }}>
         <button
           type="button"
-          onClick={() => setOpen((o) => !o)}
+          onClick={() => setManualOpen(!open)}
           disabled={!hasChildren}
           className="w-5 shrink-0 text-xs text-zinc-500 disabled:opacity-30 dark:text-zinc-400"
           aria-label={open ? "Colapsar carpeta" : "Expandir carpeta"}
@@ -196,6 +251,7 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
           {hasChildren ? (open ? "▾" : "▸") : "·"}
         </button>
         <Link href={href} className={`${linkClassName} flex-1 font-medium`}>
+          <span aria-hidden>{nodeIcon(node, open)}</span>
           {node.title}
         </Link>
         <NodeMenu>
