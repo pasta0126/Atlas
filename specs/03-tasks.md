@@ -177,8 +177,33 @@ de la infraestructura ya en marcha (Traefik, red `proxy`, DNS cdmon)_
 > vive en `vedlvm`, un repo git independiente en paralelo a `atlas` (ver
 > `02-design.md` §1/§3/§9 actualizados). `docker-compose.yml` monta
 > `~/vedlvm:/content:rw` con `CONTENT_DIR=/content`, y `scripts/deploy.sh` ya
-> no necesita `--rebase`. Pendiente: normalizar la estructura/nombres dentro
-> de `vedlvm` (fuera del alcance de este repo).
+> no necesita `--rebase`. **Hecho (2026-07-25)**: se normalizó la estructura
+> de `vedlvm` (carpetas y ficheros `.md` a slugs ascii en minúsculas con
+> guiones, sin acentos; commit `657a6d1` en `vedlvm`) — ver `02-design.md` §1
+> para la convención y el incidente de caché de búsqueda que provocó.
+
+> **Incidente (2026-07-25) — índice de búsqueda desactualizado tras rename
+> externo, con pérdida de contenido real**: tras normalizar `vedlvm` con
+> `git mv` directo en el host (bind mount, sin pasar por la API de la app),
+> el índice de MiniSearch en memoria del contenedor (`lib/search-index.ts`)
+> siguió sirviendo las rutas viejas (nunca se llamó a
+> `invalidateSearchIndex()`, que solo se dispara desde las rutas
+> `/api/docs*` y `/api/folders/[...path]`). El usuario, al buscar esos
+> documentos y caer en un 404, asumió que estaban rotos por el rename y
+> **borró manualmente 9 elementos reales y válidos** desde la UI antes de
+> detectar el problema (`documentacion/puertos.md`, `documentacion/palabras.md`,
+> `vedlvm/trabajo.md`, `vedlvm/comunicacion.md`, `vedlvm/respeto.md`, y las
+> carpetas `proyectos/orange-paranoia`, `proyectos/pomodoro-ps`,
+> `proyectos/random`, `proyectos/sampling`; siguen recuperables en el
+> historial git de `vedlvm`, commit `657a6d1`, a decisión del usuario no se
+> restauraron). Mitigación aplicada: `docker restart atlas-atlas-1` (limpia
+> el proceso Node y por tanto `cachedIndex`). **Pendiente real (no
+> implementado, fuera de alcance de esta sesión)**: `invalidateSearchIndex()`
+> no cubre cambios hechos al `CONTENT_DIR` por fuera de la API de la app
+> (git directo, sync externo, otro proceso). Posibles fixes futuros:
+> invalidar por `fs.watch`/`chokidar` sobre `CONTENT_DIR`, exponer un
+> endpoint de reindexado manual, o documentar como requisito operativo
+> reiniciar el proceso tras tocar `vedlvm` fuera de la app.
 
 ---
 

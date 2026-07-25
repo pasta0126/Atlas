@@ -96,8 +96,34 @@ trabajar contra datos reales, directamente a `~/vedlvm`. En producción apunta a
 `vedlvm` es un repo git completamente independiente del repo de la app
 (`atlas`): tiene su propio `.git`, su propio remoto y su propio historial. La
 app no asume nada sobre la estructura interna de `CONTENT_DIR` más allá de que
-existe y es legible/escribible — la normalización de nombres y carpetas dentro
-de `vedlvm` es un trabajo posterior, independiente de este repo.
+existe y es legible/escribible.
+
+**Convención de nombres en `vedlvm` (normalizada 2026-07-25)**: todas las
+carpetas y ficheros `.md` usan slugs ascii en minúsculas, con `-` para
+espacios y sin acentos/caracteres especiales (mismo criterio que
+`lib/slug.ts#slugify`, aplicado a mano vía `git mv` sobre el repo de
+contenido). Los ficheros no-markdown (imágenes, PDFs, scripts) conservan su
+nombre original. Esto es una convención del contenido, no una validación que
+imponga la app — no hay lint ni check que la haga cumplir.
+
+> **Caveat operativo importante**: la resolución de wikilinks (`lib/links.ts`)
+> hace *match exacto de string* contra las rutas en disco — no normaliza
+> mayúsculas/acentos ni usa `slugify` para comparar. Cualquier rename de
+> contenido debe actualizar a mano los wikilinks (`[[ruta/al|alias]]`) que
+> apunten a las rutas viejas, o quedan rotos (ver `resolveMarkdownHref`).
+>
+> Además, si el contenido de `vedlvm` se modifica **por fuera de la API de
+> la app** (como `git mv` directo en el host, en vez de usar el editor web),
+> el índice de búsqueda en memoria (`lib/search-index.ts`) no se entera:
+> `invalidateSearchIndex()` solo se invoca desde `/api/docs*` y
+> `/api/folders/[...path]`. Un rename externo deja el buscador sirviendo
+> rutas fantasma hasta que se reinicia el proceso (`docker restart
+> atlas-atlas-1`). Esto causó un incidente real el 2026-07-25: el usuario
+> confió en resultados de búsqueda con rutas viejas, asumió que los
+> documentos estaban rotos y borró contenido real y válido desde la UI antes
+> de detectar la causa (detalle completo en `03-tasks.md`, nota del
+> incidente). **Regla operativa**: tras tocar `vedlvm` fuera de la app,
+> reiniciar el contenedor antes de fiarse del buscador.
 
 **Implicación en el despliegue**: como `vedlvm` tiene su propio `.git`, el
 volumen de Docker solo necesita montar `~/vedlvm` (no el repo completo de la
