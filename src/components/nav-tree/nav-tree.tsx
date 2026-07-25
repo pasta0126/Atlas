@@ -249,22 +249,26 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
   function handleDragOver(event: React.DragEvent) {
     if (!isValidDrag(event)) return;
     event.preventDefault();
+    event.stopPropagation();
     event.dataTransfer.dropEffect = "move";
   }
 
   function handleDragEnter(event: React.DragEvent) {
     if (!isValidDrag(event)) return;
     event.preventDefault();
+    event.stopPropagation();
     setIsDropTarget(true);
   }
 
-  function handleDragLeave() {
+  function handleDragLeave(event: React.DragEvent) {
+    event.stopPropagation();
     setIsDropTarget(false);
   }
 
   async function handleDrop(event: React.DragEvent) {
     if (!isValidDrag(event)) return;
     event.preventDefault();
+    event.stopPropagation();
     setIsDropTarget(false);
     const from = event.dataTransfer.getData(DRAG_MIME_TYPE);
     if (!from) return;
@@ -311,16 +315,12 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
   const hasChildren = (node.children ?? []).length > 0;
 
   return (
-    <li>
+    <li onDragOver={handleDragOver} onDragEnter={handleDragEnter} onDragLeave={handleDragLeave} onDrop={handleDrop}>
       <div
         className={`group flex items-center rounded ${isDropTarget ? "bg-blue-100 ring-1 ring-inset ring-blue-400 dark:bg-blue-500/20 dark:ring-blue-500" : ""}`}
         style={{ paddingLeft: `${depth * 0.75}rem` }}
         draggable
         onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnter={handleDragEnter}
-        onDragLeave={handleDragLeave}
-        onDrop={handleDrop}
       >
         <button
           type="button"
