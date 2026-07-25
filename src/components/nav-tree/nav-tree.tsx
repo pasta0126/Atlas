@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import type { AtlasNode } from "@/types/atlas";
+import { classifyFile } from "@/lib/file-kind";
 
 function nodeHref(nodePath: string): string {
   const withoutExt = nodePath.endsWith(".md") ? nodePath.slice(0, -3) : nodePath;
@@ -206,12 +207,12 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
     }
   }
 
-  if (node.type === "file") {
+  if (node.type === "file" && classifyFile(node.title) === "unsupported") {
     return (
       <li
         className="flex items-center gap-1.5 truncate rounded px-2 py-1 text-sm text-zinc-400 dark:text-zinc-600"
         style={{ paddingLeft: `${depth * 0.75 + 1.25}rem` }}
-        title={`${node.title} (no es un documento Markdown, no se puede abrir)`}
+        title={`${node.title} (no se puede abrir)`}
       >
         <span aria-hidden>{nodeIcon(node)}</span>
         <span className="truncate">{node.title}</span>
@@ -219,7 +220,7 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
     );
   }
 
-  if (node.type === "document") {
+  if (node.type === "document" || node.type === "file") {
     return (
       <li className="group flex items-center">
         <Link href={href} className={linkClassName} style={{ paddingLeft: `${depth * 0.75 + 1.25}rem` }}>
