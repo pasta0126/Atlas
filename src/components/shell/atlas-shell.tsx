@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { NavTree } from "@/components/nav-tree/nav-tree";
 import { SearchPalette } from "@/components/search/search-palette";
+import { MenuIcon } from "@/components/icons";
 import type { AtlasNode } from "@/types/atlas";
 
 export function AtlasShell({
@@ -21,9 +22,9 @@ export function AtlasShell({
           type="button"
           onClick={() => setSidebarOpen(true)}
           aria-label="Abrir navegación"
-          className="rounded border border-black/[.08] bg-white px-2 py-1 text-sm text-zinc-700 shadow-sm dark:border-white/[.145] dark:bg-zinc-900 dark:text-zinc-300"
+          className="rounded border border-black/[.08] bg-white p-1.5 text-zinc-700 shadow-sm dark:border-white/[.145] dark:bg-zinc-900 dark:text-zinc-300"
         >
-          ☰
+          <MenuIcon className="h-[18px] w-[18px]" />
         </button>
       </div>
 

@@ -6,6 +6,7 @@ import { MetadataPanel } from "./metadata-panel";
 import { Preview } from "@/components/preview/preview";
 import { HistoryPanel } from "@/components/history/history-panel";
 import { Backlinks } from "@/components/backlinks/backlinks";
+import { CheckIcon, PencilIcon, XIcon } from "@/components/icons";
 import type { AtlasDocument, Frontmatter } from "@/types/atlas";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
@@ -28,56 +29,6 @@ function tabClass(active: boolean): string {
       ? "border-foreground font-medium text-zinc-900 dark:text-zinc-100"
       : "border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
   }`;
-}
-
-function PencilIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={1.75}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M12 20h9" />
-      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
-    </svg>
-  );
-}
-
-function CheckIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M20 6 9 17l-5-5" />
-    </svg>
-  );
-}
-
-function XIcon({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className={className}
-    >
-      <path d="M18 6 6 18" />
-      <path d="m6 6 12 12" />
-    </svg>
-  );
 }
 
 const iconButtonClass =

@@ -6,6 +6,21 @@ import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import type { AtlasNode } from "@/types/atlas";
 import { classifyFile } from "@/lib/file-kind";
+import {
+  BookIcon,
+  ChevronDownIcon,
+  ChevronRightIcon,
+  CodeIcon,
+  FileTextIcon,
+  FolderIcon,
+  FolderOpenIcon,
+  ImageIcon,
+  LockIcon,
+  MoreHorizontalIcon,
+  PaperclipIcon,
+} from "@/components/icons";
+
+type IconComponent = (props: { className?: string }) => React.JSX.Element;
 
 function nodeHref(nodePath: string): string {
   const withoutExt = nodePath.endsWith(".md") ? nodePath.slice(0, -3) : nodePath;
@@ -29,36 +44,47 @@ function isSelfOrDescendant(ancestor: string, candidate: string): boolean {
   return candidate === ancestor || candidate.startsWith(`${ancestor}/`);
 }
 
-const FILE_ICONS: Record<string, string> = {
-  pdf: "📕",
-  png: "🖼️",
-  jpg: "🖼️",
-  jpeg: "🖼️",
-  gif: "🖼️",
-  svg: "🖼️",
-  ico: "🖼️",
-  psd: "🖼️",
-  json: "🔧",
-  yml: "⚙️",
-  yaml: "⚙️",
-  sh: "💻",
-  ps1: "💻",
-  py: "💻",
-  azw3: "📚",
-  epub: "📚",
-  kdbx: "🔒",
-  pages: "📄",
+const FILE_ICONS: Record<string, IconComponent> = {
+  pdf: BookIcon,
+  png: ImageIcon,
+  jpg: ImageIcon,
+  jpeg: ImageIcon,
+  gif: ImageIcon,
+  svg: ImageIcon,
+  ico: ImageIcon,
+  psd: ImageIcon,
+  json: CodeIcon,
+  yml: CodeIcon,
+  yaml: CodeIcon,
+  sh: CodeIcon,
+  ps1: CodeIcon,
+  py: CodeIcon,
+  azw3: BookIcon,
+  epub: BookIcon,
+  kdbx: LockIcon,
+  pages: FileTextIcon,
 };
 
-function fileIcon(title: string): string {
+function fileIconElement(title: string, className: string): React.JSX.Element {
   const ext = title.includes(".") ? title.split(".").pop()!.toLowerCase() : "";
-  return FILE_ICONS[ext] ?? "📎";
+  const Icon = FILE_ICONS[ext] ?? PaperclipIcon;
+  return <Icon className={className} />;
 }
 
-function nodeIcon(node: AtlasNode, open?: boolean): string {
-  if (node.type === "folder") return open ? "📂" : "📁";
-  if (node.type === "document") return "📄";
-  return fileIcon(node.title);
+function nodeIconElement(node: AtlasNode, open: boolean | undefined, className: string): React.JSX.Element {
+  if (node.type === "folder") {
+    return open ? <FolderOpenIcon className={className} /> : <FolderIcon className={className} />;
+  }
+  if (node.type === "document") return <FileTextIcon className={className} />;
+  return fileIconElement(node.title, className);
+}
+
+function NodeIcon({ node, open }: { node: AtlasNode; open?: boolean }) {
+  return (
+    <span aria-hidden className="shrink-0 text-zinc-500 dark:text-zinc-400">
+      {nodeIconElement(node, open, "h-4 w-4")}
+    </span>
+  );
 }
 
 async function createDocument(folder: string, titulo: string): Promise<AtlasNode | null> {
@@ -133,8 +159,8 @@ async function deleteFolder(relativePath: string, force: boolean): Promise<"ok" 
 function NodeMenu({ children }: { children: React.ReactNode }) {
   return (
     <details className="relative shrink-0 opacity-0 group-hover:opacity-100 [&[open]]:opacity-100">
-      <summary className="cursor-pointer list-none px-1 text-xs text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">
-        ⋯
+      <summary className="flex cursor-pointer list-none items-center rounded px-1 py-0.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">
+        <MoreHorizontalIcon className="h-4 w-4" />
       </summary>
       <div className="absolute right-0 z-10 mt-1 flex flex-col gap-0.5 rounded border border-black/[.08] bg-white p-1 text-xs shadow-lg dark:border-white/[.145] dark:bg-zinc-900">
         {children}
@@ -290,7 +316,7 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
         style={{ paddingLeft: `${depth * 0.75 + 1.25}rem` }}
         title={`${node.title} (no se puede abrir)`}
       >
-        <span aria-hidden>{nodeIcon(node)}</span>
+        <NodeIcon node={node} />
         <span className="truncate">{node.title}</span>
       </li>
     );
@@ -300,7 +326,7 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
     return (
       <li className="group flex items-center" draggable onDragStart={handleDragStart}>
         <Link href={href} className={linkClassName} style={{ paddingLeft: `${depth * 0.75 + 1.25}rem` }}>
-          <span aria-hidden>{nodeIcon(node)}</span>
+          <NodeIcon node={node} />
           <span className="truncate">{node.title}</span>
         </Link>
         <NodeMenu>
@@ -327,13 +353,13 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
           type="button"
           onClick={() => setManualOpen(!open)}
           disabled={!hasChildren}
-          className="w-5 shrink-0 text-xs text-zinc-500 disabled:opacity-30 dark:text-zinc-400"
+          className="flex w-5 shrink-0 items-center justify-center text-zinc-500 disabled:opacity-30 dark:text-zinc-400"
           aria-label={open ? "Colapsar carpeta" : "Expandir carpeta"}
         >
-          {hasChildren ? (open ? "▾" : "▸") : "·"}
+          {hasChildren && (open ? <ChevronDownIcon className="h-3.5 w-3.5" /> : <ChevronRightIcon className="h-3.5 w-3.5" />)}
         </button>
         <Link href={href} className={`${linkClassName} flex-1 font-medium`}>
-          <span aria-hidden>{nodeIcon(node, open)}</span>
+          <NodeIcon node={node} open={open} />
           {node.title}
         </Link>
         <NodeMenu>
@@ -414,6 +440,11 @@ export function NavTree({ root }: { root: AtlasNode }) {
     }
   }
 
+  async function handleLogout() {
+    await fetch("/api/auth/logout", { method: "POST" });
+    window.location.href = "/login";
+  }
+
   return (
     <nav className="flex h-full flex-col overflow-y-auto p-3">
       <Link
@@ -464,6 +495,13 @@ export function NavTree({ root }: { root: AtlasNode }) {
           <NavNode key={child.path} node={child} depth={0} />
         ))}
       </ul>
+      <button
+        type="button"
+        onClick={handleLogout}
+        className="mt-2 rounded px-2 py-1 text-left text-xs text-zinc-500 hover:bg-black/[.04] dark:text-zinc-400 dark:hover:bg-white/[.06]"
+      >
+        Cerrar sesión
+      </button>
     </nav>
   );
 }

@@ -22,5 +22,10 @@ ENV PORT=3000
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
+# El contenedor corre como uid 1001 (ver docker-compose.yml), pero COPY deja
+# los ficheros con dueño root: sin esto, Next no puede escribir en
+# .next/cache y la optimización de imágenes (favicon, logo) falla en runtime.
+RUN mkdir -p .next/cache && chown -R 1001:1001 .next
+
 EXPOSE 3000
 CMD ["node", "server.js"]
