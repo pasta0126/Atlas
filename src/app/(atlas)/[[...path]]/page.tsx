@@ -1,10 +1,11 @@
 import { notFound } from "next/navigation";
-import { listDocumentPaths, resolveRouteDocument } from "@/lib/fs";
+import { folderExists, listDocumentPaths, resolveRouteDocument } from "@/lib/fs";
 import { readTextFile } from "@/lib/plain-files";
 import { classifyFile } from "@/lib/file-kind";
 import { DocumentEditor } from "@/components/editor/document-editor";
 import { FileEditor } from "@/components/editor/file-editor";
 import { ImageViewer } from "@/components/viewer/image-viewer";
+import { MissingIndexPrompt } from "@/components/viewer/missing-index-prompt";
 
 export default async function DocumentPage({
   params,
@@ -30,6 +31,9 @@ export default async function DocumentPage({
 
   const document = await resolveRouteDocument(segments).catch(() => null);
   if (!document) {
+    if (await folderExists(routePath)) {
+      return <MissingIndexPrompt key={routePath} folderPath={routePath} />;
+    }
     notFound();
   }
 

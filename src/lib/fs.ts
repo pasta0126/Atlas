@@ -186,6 +186,16 @@ export async function deleteDocument(relativePath: string): Promise<void> {
   await fsp.unlink(resolveContentPath(relativePath));
 }
 
+/** Indica si `relativePath` existe y es una carpeta (para distinguir un 404 real de una carpeta sin index.md). */
+export async function folderExists(relativePath: string): Promise<boolean> {
+  try {
+    const stat = await fsp.stat(resolveContentPath(relativePath));
+    return stat.isDirectory();
+  } catch {
+    return false;
+  }
+}
+
 export async function createFolder(relativePath: string): Promise<void> {
   const absolutePath = resolveContentPath(relativePath);
   if (await pathExists(absolutePath)) {

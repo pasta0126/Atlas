@@ -11,8 +11,9 @@ import type { AtlasDocument, Frontmatter } from "@/types/atlas";
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 type RightTab = "preview" | "historial" | "backlinks";
 // En móvil solo se muestra una zona a la vez (editor o la pestaña
-// seleccionada); en escritorio (sm+) ambas conviven en dos columnas y este
-// estado se ignora.
+// seleccionada). En escritorio, por defecto también se muestra solo la
+// pestaña seleccionada a pantalla completa; el botón "Editar" abre el
+// editor en una segunda columna.
 type MobileView = "editor" | "right";
 
 function apiPathFor(documentPath: string): string {
@@ -31,6 +32,7 @@ export function DocumentEditor({
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [rightTab, setRightTab] = useState<RightTab>("preview");
   const [mobileView, setMobileView] = useState<MobileView>("right");
+  const [desktopEditing, setDesktopEditing] = useState(false);
 
   function showRightTab(tab: RightTab) {
     setRightTab(tab);
@@ -77,8 +79,18 @@ export function DocumentEditor({
           <div className="flex rounded-full border border-black/[.08] p-0.5 dark:border-white/[.145]">
             <button
               type="button"
-              onClick={() => setMobileView("editor")}
+              onClick={() => {
+                setMobileView("editor");
+                setDesktopEditing(true);
+              }}
               className={`rounded-full px-2 py-1 sm:hidden ${mobileView === "editor" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+            >
+              Editar
+            </button>
+            <button
+              type="button"
+              onClick={() => setDesktopEditing((value) => !value)}
+              className={`hidden rounded-full px-3 py-1 sm:inline-block ${desktopEditing ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
             >
               Editar
             </button>
@@ -115,10 +127,12 @@ export function DocumentEditor({
           </button>
         </div>
       </div>
-      <MetadataPanel frontmatter={frontmatter} onChange={setFrontmatter} />
-      <div className="flex flex-1 flex-col overflow-hidden sm:grid sm:grid-cols-2">
+      {desktopEditing && <MetadataPanel frontmatter={frontmatter} onChange={setFrontmatter} />}
+      <div
+        className={`flex flex-1 flex-col overflow-hidden ${desktopEditing ? "sm:grid sm:grid-cols-2" : "sm:flex"}`}
+      >
         <div
-          className={`${mobileView === "editor" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex sm:border-r sm:border-black/[.08] sm:dark:border-white/[.145]`}
+          className={`${mobileView === "editor" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden ${desktopEditing ? "sm:flex sm:border-r sm:border-black/[.08] sm:dark:border-white/[.145]" : "sm:hidden"}`}
         >
           <MarkdownEditor value={content} onChange={setContent} />
         </div>
