@@ -10,10 +10,11 @@ import type { AtlasDocument, Frontmatter } from "@/types/atlas";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 type RightTab = "preview" | "historial" | "backlinks";
+type DesktopRightTab = "historial" | "backlinks";
 // En móvil solo se muestra una zona a la vez (editor o la pestaña
-// seleccionada). En escritorio, por defecto también se muestra solo la
-// pestaña seleccionada a pantalla completa; el botón "Editar" abre el
-// editor en una segunda columna.
+// seleccionada). En escritorio siempre hay 2 columnas: sin editar,
+// izquierda = Preview y derecha = Historial/Backlinks; editando,
+// izquierda = editor y derecha = Preview.
 type MobileView = "editor" | "right";
 
 function apiPathFor(documentPath: string): string {
@@ -31,6 +32,7 @@ export function DocumentEditor({
   const [frontmatter, setFrontmatter] = useState<Frontmatter>(document.frontmatter);
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [rightTab, setRightTab] = useState<RightTab>("preview");
+  const [desktopRightTab, setDesktopRightTab] = useState<DesktopRightTab>("historial");
   const [mobileView, setMobileView] = useState<MobileView>("right");
   const [desktopEditing, setDesktopEditing] = useState(false);
 
@@ -97,25 +99,44 @@ export function DocumentEditor({
             <button
               type="button"
               onClick={() => showRightTab("preview")}
-              className={`rounded-full px-2 py-1 sm:px-3 ${mobileView === "right" && rightTab === "preview" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+              className={`rounded-full px-2 py-1 sm:hidden ${mobileView === "right" && rightTab === "preview" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
             >
               Preview
             </button>
             <button
               type="button"
               onClick={() => showRightTab("historial")}
-              className={`rounded-full px-2 py-1 sm:px-3 ${mobileView === "right" && rightTab === "historial" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+              className={`rounded-full px-2 py-1 sm:hidden ${mobileView === "right" && rightTab === "historial" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
             >
               Historial
             </button>
             <button
               type="button"
               onClick={() => showRightTab("backlinks")}
-              className={`rounded-full px-2 py-1 sm:px-3 ${mobileView === "right" && rightTab === "backlinks" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+              className={`rounded-full px-2 py-1 sm:hidden ${mobileView === "right" && rightTab === "backlinks" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
             >
               Backlinks
               {document.backlinks.length > 0 && ` (${document.backlinks.length})`}
             </button>
+            {!desktopEditing && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setDesktopRightTab("historial")}
+                  className={`hidden rounded-full px-3 py-1 sm:inline-block ${desktopRightTab === "historial" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+                >
+                  Historial
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDesktopRightTab("backlinks")}
+                  className={`hidden rounded-full px-3 py-1 sm:inline-block ${desktopRightTab === "backlinks" ? "bg-black/[.06] dark:bg-white/[.1]" : ""}`}
+                >
+                  Backlinks
+                  {document.backlinks.length > 0 && ` (${document.backlinks.length})`}
+                </button>
+              </>
+            )}
           </div>
           <button
             type="button"
@@ -128,22 +149,35 @@ export function DocumentEditor({
         </div>
       </div>
       {desktopEditing && <MetadataPanel frontmatter={frontmatter} onChange={setFrontmatter} />}
-      <div
-        className={`flex flex-1 flex-col overflow-hidden ${desktopEditing ? "sm:grid sm:grid-cols-2" : "sm:flex"}`}
-      >
+      <div className="flex flex-1 flex-col overflow-hidden sm:grid sm:grid-cols-2">
         <div
-          className={`${mobileView === "editor" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden ${desktopEditing ? "sm:flex sm:border-r sm:border-black/[.08] sm:dark:border-white/[.145]" : "sm:hidden"}`}
+          className={`${mobileView === "editor" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex sm:border-r sm:border-black/[.08] sm:dark:border-white/[.145]`}
         >
-          <MarkdownEditor value={content} onChange={setContent} />
-        </div>
-        <div className={`${mobileView === "right" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex`}>
-          {rightTab === "preview" && (
+          {desktopEditing ? (
+            <MarkdownEditor value={content} onChange={setContent} />
+          ) : (
             <Preview content={content} docPath={document.path} docPaths={docPaths} />
           )}
-          {rightTab === "historial" && (
-            <HistoryPanel key={document.path} documentPath={document.path} />
-          )}
-          {rightTab === "backlinks" && <Backlinks paths={document.backlinks} />}
+        </div>
+        <div className={`${mobileView === "right" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex`}>
+          <div className="flex flex-1 flex-col overflow-hidden sm:hidden">
+            {rightTab === "preview" && (
+              <Preview content={content} docPath={document.path} docPaths={docPaths} />
+            )}
+            {rightTab === "historial" && (
+              <HistoryPanel key={document.path} documentPath={document.path} />
+            )}
+            {rightTab === "backlinks" && <Backlinks paths={document.backlinks} />}
+          </div>
+          <div className="hidden flex-1 flex-col overflow-hidden sm:flex">
+            {desktopEditing ? (
+              <Preview content={content} docPath={document.path} docPaths={docPaths} />
+            ) : desktopRightTab === "historial" ? (
+              <HistoryPanel key={document.path} documentPath={document.path} />
+            ) : (
+              <Backlinks paths={document.backlinks} />
+            )}
+          </div>
         </div>
       </div>
     </div>
