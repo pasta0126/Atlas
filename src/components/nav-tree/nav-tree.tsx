@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
@@ -417,8 +418,9 @@ export function NavTree({ root }: { root: AtlasNode }) {
     <nav className="flex h-full flex-col overflow-y-auto p-3">
       <Link
         href="/"
-        className="mb-2 truncate rounded px-2 py-1 text-sm font-semibold tracking-tight text-zinc-800 hover:bg-black/[.04] dark:text-zinc-100 dark:hover:bg-white/[.06]"
+        className="mb-2 flex items-center gap-2 truncate rounded px-2 py-1 text-sm font-semibold tracking-tight text-zinc-800 hover:bg-black/[.04] dark:text-zinc-100 dark:hover:bg-white/[.06]"
       >
+        <Image src="/logo.png" alt="" width={20} height={20} className="rounded" />
         Atlas
       </Link>
       <div className="mb-2 grid grid-cols-2 gap-1 border-b border-black/[.08] pb-2 text-xs dark:border-white/[.145]">
