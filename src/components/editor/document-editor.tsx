@@ -14,7 +14,8 @@ type DesktopRightTab = "historial" | "backlinks";
 // En móvil solo se muestra una zona a la vez (editor o la pestaña
 // seleccionada). En escritorio siempre hay 2 columnas: sin editar,
 // izquierda = Preview y derecha = Historial/Backlinks; editando,
-// izquierda = editor y derecha = Preview.
+// izquierda = editor y derecha = Preview. No hay cabecera global: cada
+// panel lleva sus propios controles.
 type MobileView = "editor" | "right";
 
 function apiPathFor(documentPath: string): string {
@@ -28,6 +29,61 @@ function tabClass(active: boolean): string {
       : "border-transparent text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
   }`;
 }
+
+function PencilIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={1.75}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z" />
+    </svg>
+  );
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
+function XIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+    >
+      <path d="M18 6 6 18" />
+      <path d="m6 6 12 12" />
+    </svg>
+  );
+}
+
+const iconButtonClass =
+  "shrink-0 rounded-full p-1.5 text-zinc-600 hover:bg-black/[.06] hover:text-zinc-900 dark:text-zinc-400 dark:hover:bg-white/[.1] dark:hover:text-zinc-100";
+const saveButtonClass =
+  "shrink-0 rounded-full bg-foreground p-1.5 text-background hover:bg-[#383838] dark:hover:bg-[#ccc]";
 
 export function DocumentEditor({
   document,
@@ -91,68 +147,63 @@ export function DocumentEditor({
   }, [save]);
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden">
-      <div className="flex items-center justify-between gap-2 border-b border-black/[.08] py-2 pl-14 pr-4 dark:border-white/[.145] sm:pl-4">
-        <h1 className="truncate text-sm font-medium text-zinc-700 dark:text-zinc-300">
-          {frontmatter.titulo ?? document.path}
-        </h1>
-        {!desktopEditing && (
-          <button
-            type="button"
-            onClick={startEditing}
-            aria-label="Editar"
-            title="Editar"
-            className="shrink-0 rounded-full p-2 text-base leading-none hover:bg-black/[.06] dark:hover:bg-white/[.1]"
-          >
-            ✎
-          </button>
-        )}
-      </div>
-      {desktopEditing && <MetadataPanel frontmatter={frontmatter} onChange={setFrontmatter} />}
-      <div className="flex flex-1 flex-col overflow-hidden sm:grid sm:grid-cols-2">
-        <div
-          className={`${mobileView === "editor" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex sm:border-r sm:border-black/[.08] sm:dark:border-white/[.145]`}
-        >
-          {desktopEditing ? (
-            <>
-              <div className="flex items-center justify-end gap-2 border-b border-black/[.08] px-2 py-1 dark:border-white/[.145]">
-                {status === "saving" && (
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">Guardando…</span>
-                )}
-                {status === "saved" && (
-                  <span className="text-xs text-zinc-500 dark:text-zinc-400">Guardado</span>
-                )}
-                {status === "error" && (
-                  <span className="text-xs text-red-600 dark:text-red-400">Error al guardar</span>
-                )}
+    <div className="flex flex-1 flex-col overflow-hidden sm:grid sm:grid-cols-2">
+      <div
+        className={`${mobileView === "editor" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex sm:border-r sm:border-black/[.08] sm:dark:border-white/[.145]`}
+      >
+        {desktopEditing ? (
+          <>
+            <div className="flex items-center justify-between gap-2 border-b border-black/[.08] py-1 pl-14 pr-2 dark:border-white/[.145] sm:pl-2">
+              <span className="text-xs text-zinc-500 dark:text-zinc-400">
+                {status === "saving" && "Guardando…"}
+                {status === "saved" && "Guardado"}
+                {status === "error" && <span className="text-red-600 dark:text-red-400">Error al guardar</span>}
+              </span>
+              <div className="flex items-center gap-1">
                 <button
                   type="button"
                   onClick={cancelEditing}
                   aria-label="Cancelar"
                   title="Cancelar"
-                  className="rounded-full p-1.5 text-sm leading-none hover:bg-black/[.06] dark:hover:bg-white/[.1]"
+                  className={iconButtonClass}
                 >
-                  ✕
+                  <XIcon className="h-[18px] w-[18px]" />
                 </button>
                 <button
                   type="button"
                   onClick={save}
                   aria-label="Guardar"
                   title="Guardar (Ctrl+S)"
-                  className="rounded-full bg-foreground p-1.5 text-sm leading-none text-background hover:bg-[#383838] dark:hover:bg-[#ccc]"
+                  className={saveButtonClass}
                 >
-                  ✓
+                  <CheckIcon className="h-[18px] w-[18px]" />
                 </button>
               </div>
-              <MarkdownEditor value={content} onChange={setContent} />
-            </>
-          ) : (
+            </div>
+            <MetadataPanel frontmatter={frontmatter} onChange={setFrontmatter} />
+            <MarkdownEditor value={content} onChange={setContent} />
+          </>
+        ) : (
+          <>
+            <div className="flex items-center justify-end border-b border-black/[.08] py-1 pr-2 dark:border-white/[.145]">
+              <button
+                type="button"
+                onClick={startEditing}
+                aria-label="Editar"
+                title="Editar"
+                className={iconButtonClass}
+              >
+                <PencilIcon className="h-[18px] w-[18px]" />
+              </button>
+            </div>
             <Preview content={content} docPath={document.path} docPaths={docPaths} />
-          )}
-        </div>
-        <div className={`${mobileView === "right" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex`}>
-          <div className="flex flex-1 flex-col overflow-hidden sm:hidden">
-            <div className="flex border-b border-black/[.08] dark:border-white/[.145]">
+          </>
+        )}
+      </div>
+      <div className={`${mobileView === "right" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex`}>
+        <div className="flex flex-1 flex-col overflow-hidden sm:hidden">
+          <div className="flex items-center justify-between border-b border-black/[.08] pl-14 pr-2 dark:border-white/[.145]">
+            <div className="flex">
               <button type="button" onClick={() => setRightTab("preview")} className={tabClass(rightTab === "preview")}>
                 Preview
               </button>
@@ -172,48 +223,57 @@ export function DocumentEditor({
                 {document.backlinks.length > 0 && ` (${document.backlinks.length})`}
               </button>
             </div>
-            <div className="flex flex-1 flex-col overflow-hidden">
-              {rightTab === "preview" && (
-                <Preview content={content} docPath={document.path} docPaths={docPaths} />
-              )}
-              {rightTab === "historial" && (
-                <HistoryPanel key={document.path} documentPath={document.path} />
-              )}
-              {rightTab === "backlinks" && <Backlinks paths={document.backlinks} />}
-            </div>
+            <button
+              type="button"
+              onClick={startEditing}
+              aria-label="Editar"
+              title="Editar"
+              className={iconButtonClass}
+            >
+              <PencilIcon className="h-[18px] w-[18px]" />
+            </button>
           </div>
-          <div className="hidden flex-1 flex-col overflow-hidden sm:flex">
-            {desktopEditing ? (
+          <div className="flex flex-1 flex-col overflow-hidden">
+            {rightTab === "preview" && (
               <Preview content={content} docPath={document.path} docPaths={docPaths} />
-            ) : (
-              <>
-                <div className="flex border-b border-black/[.08] dark:border-white/[.145]">
-                  <button
-                    type="button"
-                    onClick={() => setDesktopRightTab("historial")}
-                    className={tabClass(desktopRightTab === "historial")}
-                  >
-                    Historial
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setDesktopRightTab("backlinks")}
-                    className={tabClass(desktopRightTab === "backlinks")}
-                  >
-                    Backlinks
-                    {document.backlinks.length > 0 && ` (${document.backlinks.length})`}
-                  </button>
-                </div>
-                <div className="flex flex-1 flex-col overflow-hidden">
-                  {desktopRightTab === "historial" ? (
-                    <HistoryPanel key={document.path} documentPath={document.path} />
-                  ) : (
-                    <Backlinks paths={document.backlinks} />
-                  )}
-                </div>
-              </>
             )}
+            {rightTab === "historial" && (
+              <HistoryPanel key={document.path} documentPath={document.path} />
+            )}
+            {rightTab === "backlinks" && <Backlinks paths={document.backlinks} />}
           </div>
+        </div>
+        <div className="hidden flex-1 flex-col overflow-hidden sm:flex">
+          {desktopEditing ? (
+            <Preview content={content} docPath={document.path} docPaths={docPaths} />
+          ) : (
+            <>
+              <div className="flex border-b border-black/[.08] dark:border-white/[.145]">
+                <button
+                  type="button"
+                  onClick={() => setDesktopRightTab("historial")}
+                  className={tabClass(desktopRightTab === "historial")}
+                >
+                  Historial
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setDesktopRightTab("backlinks")}
+                  className={tabClass(desktopRightTab === "backlinks")}
+                >
+                  Backlinks
+                  {document.backlinks.length > 0 && ` (${document.backlinks.length})`}
+                </button>
+              </div>
+              <div className="flex flex-1 flex-col overflow-hidden">
+                {desktopRightTab === "historial" ? (
+                  <HistoryPanel key={document.path} documentPath={document.path} />
+                ) : (
+                  <Backlinks paths={document.backlinks} />
+                )}
+              </div>
+            </>
+          )}
         </div>
       </div>
     </div>
