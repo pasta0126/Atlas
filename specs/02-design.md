@@ -15,6 +15,7 @@
 | Operaciones git           | `simple-git` (wrapper de la CLI de git) desde el backend                                                                     | Evita reimplementar git; usa el binario real instalado en el servidor.                                                                                        |
 | Editor Markdown           | CodeMirror 6 + `react-markdown`/`remark` para preview                                                                        | Editor ligero, extensible, sin dependencias pesadas tipo Slate/ProseMirror que no aportan aquí.                                                               |
 | Búsqueda                  | Índice en memoria construido al vuelo (FlexSearch o MiniSearch) sobre los archivos, sin BD externa                           | Volumen personal (miles de docs) cabe en memoria; evita levantar Elasticsearch/Postgres.                                                                      |
+| Cifrado de documentos      | Client-side (Web Crypto: AES-256-GCM, clave derivada por PBKDF2), solo el cuerpo, frontmatter en claro (decisión del usuario 2026-08-06) | El servidor nunca debe ver la frase secreta ni el texto en claro; frontmatter en claro mantiene navegación/etiquetas funcionando sin descifrar. Coste asumido: sin recuperación de frase, sin búsqueda de texto ni wikilinks/backlinks dentro del cuerpo cifrado. |
 
 ## 2. Arquitectura general
 
@@ -152,6 +153,7 @@ interface Frontmatter {
   fecha?: string;
   etiquetas?: string[];
   relacionados?: string[];
+  cifrado?: boolean; // si es true, AtlasDocument.content es un sobre cifrado (ver §6.1), no markdown en claro
 }
 
 interface AtlasDocument {
@@ -196,6 +198,61 @@ verifica la cookie de sesión.
   `SESSION_SECRET`.
 - HTTPS ya lo resuelve Traefik (resolver `le`, HTTP-01) — la app no gestiona
   certificados ni termina TLS, solo escucha HTTP en la red interna `proxy`.
+
+### 6.1 Cifrado de documentos (client-side, opcional por documento)
+
+Además de la autenticación de acceso a toda la app, un documento individual
+puede marcarse como cifrado para protegerlo con una frase secreta adicional
+(p. ej. notas especialmente sensibles). Diseño (decisión del usuario
+2026-08-06, ver conversación de esa fecha):
+
+- **Todo el cifrado/descifrado ocurre en el navegador** (Web Crypto API,
+  `lib/crypto.ts`). El servidor nunca recibe la frase secreta ni el texto en
+  claro de un documento cifrado — solo transporta y almacena el sobre
+  cifrado como una cadena opaca, igual que cualquier otro contenido.
+- **Algoritmo**: AES-256-GCM. La clave se deriva de la frase secreta con
+  PBKDF2-HMAC-SHA256 (600 000 iteraciones, salt aleatorio de 16 bytes por
+  documento). IV aleatorio de 12 bytes en cada cifrado (nunca se reutiliza,
+  ni siquiera al re-guardar el mismo documento).
+- **Sobre cifrado**: JSON compacto de una sola línea `{v, salt, iv,
+  ciphertext}` (todos los campos binarios en base64), que ocupa el lugar del
+  cuerpo markdown del documento (`AtlasDocument.content`) cuando
+  `frontmatter.cifrado` es `true`.
+- **Solo se cifra el cuerpo**, nunca el frontmatter. `titulo`, `fecha`,
+  `etiquetas` y `relacionados` quedan en claro, por lo que el árbol de
+  navegación, el listado de etiquetas y el título del documento siguen
+  funcionando con normalidad sin necesidad de desbloquear el documento.
+- **Estado en el editor** (`components/editor/document-editor.tsx`): un
+  documento cifrado se abre bloqueado (se ve el sobre cifrado tal cual,
+  texto no inteligible, sin renderizar como markdown). Introducir la frase
+  correcta lo descifra en memoria del navegador; a partir de ahí se puede
+  editar y guardar con normalidad (cada guardado vuelve a cifrar con la
+  misma frase antes de enviarlo al servidor). Sin desbloquear, no se puede
+  entrar en modo edición.
+- **Activar/desactivar cifrado**: activar cifrado en un documento en claro
+  pide frase + confirmación y guarda inmediatamente. Desactivarlo
+  ("Quitar cifrado") solo está disponible si el documento ya está
+  desbloqueado en la sesión actual (hace falta el texto en claro para poder
+  volver a guardarlo sin cifrar).
+- **Sin recuperación**: no existe ningún mecanismo de recuperación de la
+  frase ni una vía de descifrado del lado del servidor. Si se olvida la
+  frase, el contenido cifrado es irrecuperable — decisión explícita, no un
+  descuido.
+- **Limitaciones asumidas** (documentadas, no bugs):
+  - El cuerpo de un documento cifrado no es buscable por texto —
+    `lib/search-index.ts` omite el campo `content` del índice cuando
+    `frontmatter.cifrado` es `true` (el título/ruta sí siguen siendo
+    buscables).
+  - Los wikilinks dentro de un documento cifrado no se pueden extraer ni
+    indexar (`lib/links.ts` opera sobre el contenido tal cual está en
+    disco, que es ciphertext) — un documento cifrado no contribuye enlaces
+    salientes a los backlinks de otros documentos. Sí puede ser destino de
+    backlinks (la resolución es por ruta, no por contenido).
+  - Los diffs de git de un documento cifrado no son legibles: al cambiar
+    salt/IV en cada guardado, el ciphertext cambia por completo aunque el
+    texto en claro apenas cambie. Es coherente con el objetivo de la
+    función (no hace falta ver diffs de algo que está cifrado precisamente
+    para no verse).
 
 ## 7. Git como motor de versionado
 

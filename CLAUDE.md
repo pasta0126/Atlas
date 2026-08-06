@@ -91,6 +91,17 @@ Key modules in `src/lib/`:
 - **`slug.ts`** — slugify used as the naming convention for content in
   `CONTENT_DIR` (lowercase ascii, `-` for spaces, no accents), applied by
   convention/by hand to content, not enforced by the app.
+- **`crypto.ts`** — client-side-only per-document encryption (AES-256-GCM,
+  key derived via PBKDF2-SHA256/600k iterations, random salt+IV per
+  encryption). Encrypts/decrypts a document's body; the server never sees
+  the passphrase or plaintext, only the opaque JSON envelope
+  (`{v, salt, iv, ciphertext}`) that sits in place of `AtlasDocument.content`
+  when `frontmatter.cifrado` is `true`. Only the body is encrypted —
+  frontmatter (title/tags) stays plaintext so nav/tags keep working. See
+  `specs/02-design.md` §6.1 for the full design and accepted limitations
+  (no full-text search or wikilink extraction inside an encrypted body, no
+  passphrase recovery). Lock/unlock state and the encrypt-on-save flow live
+  in `components/editor/document-editor.tsx`.
 
 ## Data model (no DB, derived from disk)
 
@@ -104,8 +115,8 @@ interface AtlasNode {
 
 interface AtlasDocument {
   path: string;
-  frontmatter: { titulo?: string; fecha?: string; etiquetas?: string[]; relacionados?: string[] };
-  content: string; // markdown, frontmatter stripped
+  frontmatter: { titulo?: string; fecha?: string; etiquetas?: string[]; relacionados?: string[]; cifrado?: boolean };
+  content: string; // markdown, frontmatter stripped — or an encrypted envelope JSON string if frontmatter.cifrado is true
   backlinks: string[];
 }
 ```
@@ -120,6 +131,10 @@ interface AtlasDocument {
   `SESSION_SECRET`.
 - Every route except `/login` and `/api/auth/login` requires a valid session
   (enforced in `src/proxy.ts`).
+- For encrypted documents, the API routes are intentionally passphrase-blind:
+  `content` is treated as an opaque string end-to-end. Never add server-side
+  decryption or a passphrase-recovery path — that would break the
+  confidentiality guarantee the feature exists for.
 
 ## Deployment
 

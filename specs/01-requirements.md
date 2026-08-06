@@ -91,6 +91,35 @@ móviles nativas.
   documentos relacionados — sin forzar ninguno como obligatorio salvo el título.
 - EL SISTEMA DEBERÁ permitir filtrar/listar documentos por etiqueta.
 
+### 3.8 Cifrado de documentos
+
+- EL SISTEMA DEBERÁ permitir marcar un documento existente como cifrado,
+  protegido por una frase secreta introducida por el usuario.
+- EL SISTEMA DEBERÁ cifrar el cuerpo del documento en el navegador antes de
+  enviarlo al servidor; la frase secreta y el contenido en claro NUNCA DEBERÁN
+  transmitirse ni almacenarse en el servidor.
+- EL SISTEMA DEBERÁ dejar el frontmatter (título, fecha, etiquetas,
+  relacionados) sin cifrar, de forma que la navegación, el árbol y las
+  etiquetas sigan funcionando con normalidad para documentos cifrados.
+- CUANDO un usuario abra un documento cifrado sin haber introducido la frase
+  secreta, EL SISTEMA DEBERÁ mostrar el contenido como texto cifrado no
+  inteligible, sin bloquear la visualización de metadatos ni del árbol.
+- CUANDO el usuario introduzca la frase secreta correcta, EL SISTEMA DEBERÁ
+  descifrar el contenido en el navegador y mostrarlo en claro, permitiendo su
+  edición.
+- CUANDO el usuario introduzca una frase secreta incorrecta, EL SISTEMA
+  DEBERÁ mostrar un error sin revelar información sobre la frase correcta.
+- CUANDO el usuario guarde cambios en un documento cifrado, EL SISTEMA DEBERÁ
+  volver a cifrarlo con la misma frase antes de enviarlo al servidor.
+- EL SISTEMA DEBERÁ permitir desactivar el cifrado de un documento (dejarlo
+  en claro de nuevo), únicamente cuando el usuario ya lo haya desbloqueado en
+  la sesión actual.
+- EL SISTEMA NO DEBERÁ ofrecer ningún mecanismo de recuperación de la frase
+  secreta ni de descifrado por parte del servidor: si se olvida la frase, el
+  contenido cifrado queda irrecuperable.
+- EL SISTEMA DEBERÁ excluir el cuerpo de los documentos cifrados de la
+  búsqueda de texto completo (solo título/ruta siguen siendo buscables).
+
 ## 4. Requisitos no funcionales
 
 - **Simplicidad**: la interfaz no debe parecer una herramienta corporativa (Notion,
@@ -102,6 +131,10 @@ móviles nativas.
   contenido concreto; la ruta a la carpeta de datos es configuración, no código.
 - **Seguridad**: acceso remoto protegido por autenticación; sin esto, no se expone
   la app a internet.
+- **Confidencialidad opcional por documento**: para documentos cifrados, el servidor
+  (y por tanto backups, logs o un compromiso del host) no debe tener acceso al
+  contenido en claro ni a la frase secreta — el cifrado/descifrado ocurre siempre
+  en el navegador del usuario.
 - **Rendimiento**: operaciones de lectura/escritura de archivos y commits deben
   sentirse instantáneas para el volumen de un atlas personal (cientos-miles de
   documentos, no millones).
@@ -120,3 +153,6 @@ la web y sin tocar el sistema de archivos a mano:
 6. Buscar contenido por texto o etiqueta.
 7. Ver el historial de cambios de un documento.
 8. Mover/renombrar/eliminar documentos y carpetas con confirmación.
+9. Cifrar un documento con una frase secreta, desbloquearlo introduciéndola,
+   editarlo cifrado, y quitar el cifrado — todo sin que el servidor vea nunca
+   la frase ni el contenido en claro.

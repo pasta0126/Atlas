@@ -32,6 +32,11 @@ publicar documentos al público.
   árbol.
 - **Autenticación** de usuario único (usuario + contraseña por variables de
   entorno), sin registro público.
+- **Cifrado por documento**: cualquier documento se puede proteger con una
+  frase secreta adicional. El cifrado (AES-256-GCM) y descifrado ocurren
+  siempre en el navegador — el servidor nunca ve la frase ni el contenido en
+  claro, solo almacena el sobre cifrado. Sin frase correcta no hay forma de
+  recuperar el contenido (no hay recuperación ni "puerta trasera").
 
 ## Stack
 

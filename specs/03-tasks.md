@@ -205,6 +205,37 @@ de la infraestructura ya en marcha (Traefik, red `proxy`, DNS cdmon)_
 > endpoint de reindexado manual, o documentar como requisito operativo
 > reiniciar el proceso tras tocar `vedlvm` fuera de la app.
 
+## Fase 11 — Cifrado de documentos (client-side)
+
+_Cubre: 3.8, criterio de aceptación 9 — ver `02-design.md` §6.1 para el diseño
+detallado_
+
+- [x] 11.1 `lib/crypto.ts`: cifrado/descifrado en el navegador con Web Crypto
+      (AES-256-GCM, clave derivada por PBKDF2-SHA256 con 600 000 iteraciones,
+      salt e IV aleatorios por operación), sobre cifrado serializado como JSON
+      compacto (`{v, salt, iv, ciphertext}`). Tests unitarios de round-trip,
+      frase incorrecta y sobre corrupto (`lib/__tests__/crypto.test.ts`).
+- [x] 11.2 `types/atlas.ts`: campo `Frontmatter.cifrado?: boolean`.
+- [x] 11.3 `components/editor/passphrase-form.tsx`: formulario de frase
+      secreta reutilizable, en modo "desbloquear" (una frase) y modo
+      "activar cifrado" (frase + confirmación, mínimo 8 caracteres).
+- [x] 11.4 `components/editor/document-editor.tsx`: estado bloqueado/
+      desbloqueado por documento; vista de sobre cifrado sin descifrar cuando
+      está bloqueado; edición y guardado solo posibles desbloqueado (cada
+      guardado re-cifra en el navegador antes del `PUT`); acciones "Cifrar
+      documento" y "Quitar cifrado" (esta última solo disponible
+      desbloqueado). El servidor (`app/api/docs/[...path]/route.ts`) no
+      necesitó cambios: ya trataba `content` como una cadena opaca.
+- [x] 11.5 `lib/search-index.ts`: el cuerpo de un documento cifrado
+      (`frontmatter.cifrado`) se excluye del índice (queda `content: ""`);
+      título y ruta siguen siendo buscables.
+- [x] 11.6 Verificado en navegador (Playwright, contra `atlas-content-dev`):
+      activar cifrado → recargar (queda bloqueado) → frase incorrecta
+      rechazada → frase correcta descifra → editar y guardar (el cambio
+      persiste cifrado tras recargar y volver a desbloquear) → quitar
+      cifrado. Confirmado también que la búsqueda encuentra el documento
+      cifrado por título pero no por contenido del ciphertext.
+
 ---
 
 **Siguiente paso sugerido**: confirmar esta spec y empezar por la Fase 0 + Fase 1,
