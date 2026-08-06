@@ -48,7 +48,9 @@ async function buildIndex(): Promise<MiniSearch<IndexedDoc>> {
       id: doc.path,
       path: doc.path,
       title: doc.frontmatter.titulo ?? doc.path,
-      content: doc.content,
+      // El cuerpo de un documento cifrado es un sobre opaco (ver lib/crypto.ts):
+      // no hay nada legible que indexar, y el servidor no puede descifrarlo.
+      content: doc.frontmatter.cifrado ? "" : doc.content,
     })),
   );
   return index;

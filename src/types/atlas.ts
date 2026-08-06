@@ -12,6 +12,8 @@ export interface Frontmatter {
   fecha?: string;
   etiquetas?: string[];
   relacionados?: string[];
+  /** Si es `true`, `AtlasDocument.content` es un sobre cifrado (ver `lib/crypto.ts`), no markdown en claro. */
+  cifrado?: boolean;
   [key: string]: unknown;
 }
 
