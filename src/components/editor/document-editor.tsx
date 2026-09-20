@@ -232,9 +232,11 @@ export function DocumentEditor({
   }
 
   return (
-    <div className="flex flex-1 flex-col overflow-hidden sm:grid sm:grid-cols-2">
+    <div className="relative flex flex-1 flex-col overflow-hidden sm:flex-row">
       <div
-        className={`${mobileView === "editor" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex sm:border-r sm:border-black/[.08] sm:dark:border-white/[.145]`}
+        className={`${mobileView === "editor" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex ${
+          desktopEditing ? "sm:border-r sm:border-black/[.08] sm:dark:border-white/[.145]" : ""
+        }`}
       >
         {desktopEditing ? (
           <>
@@ -290,88 +292,115 @@ export function DocumentEditor({
           </>
         )}
       </div>
-      <div className={`${mobileView === "right" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex`}>
-        <div className="flex flex-1 flex-col overflow-hidden sm:hidden">
-          <div className="flex items-center justify-between border-b border-black/[.08] pl-14 pr-2 dark:border-white/[.145]">
-            <div className="flex">
-              <button type="button" onClick={() => setRightTab("preview")} className={tabClass(rightTab === "preview")}>
-                Preview
-              </button>
-              <button
-                type="button"
-                onClick={() => setRightTab("historial")}
-                className={tabClass(rightTab === "historial")}
-              >
-                Historial
-              </button>
-              <button
-                type="button"
-                onClick={() => setRightTab("backlinks")}
-                className={tabClass(rightTab === "backlinks")}
-              >
-                Backlinks
-                {document.backlinks.length > 0 && ` (${document.backlinks.length})`}
-              </button>
-            </div>
-            <div className="flex items-center gap-1">
-              {rightTab === "preview" && renderEncryptToggle()}
-              <button
-                type="button"
-                onClick={startEditing}
-                aria-label="Editar"
-                title={locked ? "Desbloquea el documento para editar" : "Editar"}
-                disabled={locked}
-                className={`${iconButtonClass} ${locked ? iconButtonDisabledClass : ""}`}
-              >
-                <PencilIcon className="h-[18px] w-[18px]" />
-              </button>
-            </div>
+      {/* Móvil: pestañas Preview/Historial/Backlinks, una zona a la vez. */}
+      <div className={`${mobileView === "right" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:hidden`}>
+        <div className="flex items-center justify-between border-b border-black/[.08] pl-14 pr-2 dark:border-white/[.145]">
+          <div className="flex">
+            <button type="button" onClick={() => setRightTab("preview")} className={tabClass(rightTab === "preview")}>
+              Preview
+            </button>
+            <button
+              type="button"
+              onClick={() => setRightTab("historial")}
+              className={tabClass(rightTab === "historial")}
+            >
+              Historial
+            </button>
+            <button
+              type="button"
+              onClick={() => setRightTab("backlinks")}
+              className={tabClass(rightTab === "backlinks")}
+            >
+              Backlinks
+              {document.backlinks.length > 0 && ` (${document.backlinks.length})`}
+            </button>
           </div>
-          <div className="flex flex-1 flex-col overflow-hidden">
-            {rightTab === "preview" && renderMainContent()}
-            {rightTab === "historial" && (
-              <HistoryPanel key={document.path} documentPath={document.path} />
-            )}
-            {rightTab === "backlinks" && <Backlinks paths={document.backlinks} />}
+          <div className="flex items-center gap-1">
+            {rightTab === "preview" && renderEncryptToggle()}
+            <button
+              type="button"
+              onClick={startEditing}
+              aria-label="Editar"
+              title={locked ? "Desbloquea el documento para editar" : "Editar"}
+              disabled={locked}
+              className={`${iconButtonClass} ${locked ? iconButtonDisabledClass : ""}`}
+            >
+              <PencilIcon className="h-[18px] w-[18px]" />
+            </button>
           </div>
         </div>
-        <div className="hidden flex-1 flex-col overflow-hidden sm:flex">
-          {desktopEditing ? (
-            <Preview content={isEncrypted ? (plaintext ?? "") : content} docPath={document.path} docPaths={docPaths} />
-          ) : (
-            <>
-              <div className="flex border-b border-black/[.08] dark:border-white/[.145]">
-                <button
-                  type="button"
-                  onClick={() => setDesktopRightTab(desktopRightTab === "historial" ? null : "historial")}
-                  className={tabClass(desktopRightTab === "historial")}
-                >
-                  {desktopRightTab === "historial" ? "▾ " : "▸ "}
-                  Ver historial
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setDesktopRightTab(desktopRightTab === "backlinks" ? null : "backlinks")}
-                  className={tabClass(desktopRightTab === "backlinks")}
-                >
-                  {desktopRightTab === "backlinks" ? "▾ " : "▸ "}
-                  Ver backlinks
-                  {document.backlinks.length > 0 && ` (${document.backlinks.length})`}
-                </button>
-              </div>
-              {desktopRightTab && (
-                <div className="flex flex-1 flex-col overflow-hidden">
-                  {desktopRightTab === "historial" ? (
-                    <HistoryPanel key={document.path} documentPath={document.path} />
-                  ) : (
-                    <Backlinks paths={document.backlinks} />
-                  )}
-                </div>
-              )}
-            </>
-          )}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {rightTab === "preview" && renderMainContent()}
+          {rightTab === "historial" && <HistoryPanel key={document.path} documentPath={document.path} />}
+          {rightTab === "backlinks" && <Backlinks paths={document.backlinks} />}
         </div>
       </div>
+
+      {/* Escritorio, editando: preview en vivo ocupa la mitad derecha. */}
+      {desktopEditing && (
+        <div className="hidden flex-1 flex-col overflow-hidden sm:flex">
+          <Preview content={isEncrypted ? (plaintext ?? "") : content} docPath={document.path} docPaths={docPaths} />
+        </div>
+      )}
+
+      {/* Escritorio, viendo: franja de pestañas colapsadas Historial/Backlinks
+          pegada al borde derecho. Al pulsar una, su panel se despliega por
+          encima de la vista previa (no reparte el ancho con ella). */}
+      {!desktopEditing && (
+        <>
+          <div className="hidden shrink-0 flex-col border-l border-black/[.08] dark:border-white/[.145] sm:flex">
+            <button
+              type="button"
+              onClick={() => setDesktopRightTab(desktopRightTab === "historial" ? null : "historial")}
+              title="Ver historial"
+              className={`flex items-center justify-center whitespace-nowrap px-1.5 py-3 text-xs [writing-mode:vertical-rl] ${
+                desktopRightTab === "historial"
+                  ? "bg-zinc-200 font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+                  : "text-zinc-500 hover:bg-black/[.04] hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-white/[.06] dark:hover:text-zinc-200"
+              }`}
+            >
+              Historial
+            </button>
+            <button
+              type="button"
+              onClick={() => setDesktopRightTab(desktopRightTab === "backlinks" ? null : "backlinks")}
+              title="Ver backlinks"
+              className={`flex items-center justify-center whitespace-nowrap px-1.5 py-3 text-xs [writing-mode:vertical-rl] ${
+                desktopRightTab === "backlinks"
+                  ? "bg-zinc-200 font-medium text-zinc-900 dark:bg-zinc-800 dark:text-zinc-100"
+                  : "text-zinc-500 hover:bg-black/[.04] hover:text-zinc-800 dark:text-zinc-400 dark:hover:bg-white/[.06] dark:hover:text-zinc-200"
+              }`}
+            >
+              Backlinks{document.backlinks.length > 0 && ` (${document.backlinks.length})`}
+            </button>
+          </div>
+          {desktopRightTab && (
+            <div className="absolute inset-y-0 right-9 z-10 hidden w-full max-w-md flex-col border-l border-black/[.08] bg-background shadow-xl dark:border-white/[.145] sm:flex">
+              <div className="flex items-center justify-between border-b border-black/[.08] px-3 py-1.5 dark:border-white/[.145]">
+                <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200">
+                  {desktopRightTab === "historial" ? "Historial" : "Backlinks"}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setDesktopRightTab(null)}
+                  aria-label="Cerrar"
+                  title="Cerrar"
+                  className={iconButtonClass}
+                >
+                  <XIcon className="h-[18px] w-[18px]" />
+                </button>
+              </div>
+              <div className="flex flex-1 flex-col overflow-hidden">
+                {desktopRightTab === "historial" ? (
+                  <HistoryPanel key={document.path} documentPath={document.path} />
+                ) : (
+                  <Backlinks paths={document.backlinks} />
+                )}
+              </div>
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 }
