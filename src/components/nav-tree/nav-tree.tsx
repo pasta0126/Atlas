@@ -162,7 +162,7 @@ function NodeMenu({ children }: { children: React.ReactNode }) {
       <summary className="flex cursor-pointer list-none items-center rounded px-1 py-0.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">
         <MoreHorizontalIcon className="h-4 w-4" />
       </summary>
-      <div className="absolute right-0 z-10 mt-1 flex flex-col gap-0.5 rounded border border-black/[.08] bg-white p-1 text-xs shadow-lg dark:border-white/[.145] dark:bg-zinc-900">
+      <div className="absolute right-0 z-10 mt-1 flex flex-col gap-0.5 rounded border border-black/[.08] bg-white p-1 text-xs shadow-lg dark:border-white/[.145] dark:bg-zinc-800">
         {children}
       </div>
     </details>
@@ -202,7 +202,7 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
 
   const linkClassName = `flex items-center gap-1.5 truncate rounded px-2 py-1 text-sm ${
     isActive
-      ? "bg-zinc-200 font-medium text-black ring-1 ring-inset ring-zinc-400 dark:bg-zinc-800 dark:text-zinc-50 dark:ring-zinc-600"
+      ? "bg-zinc-200 font-medium text-zinc-800 ring-1 ring-inset ring-zinc-400 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-600"
       : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
   }`;
 

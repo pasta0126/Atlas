@@ -37,12 +37,12 @@ function LoginForm() {
   }
 
   return (
-    <div className="flex flex-1 items-start justify-center bg-zinc-50 px-4 pt-20 sm:items-center sm:pt-0 dark:bg-black">
+    <div className="flex flex-1 items-start justify-center bg-zinc-50 px-4 pt-20 sm:items-center sm:pt-0 dark:bg-zinc-950">
       <form
         onSubmit={handleSubmit}
-        className="flex w-full max-w-sm flex-col gap-4 rounded-lg border border-black/[.08] bg-white p-8 dark:border-white/[.145] dark:bg-zinc-950"
+        className="flex w-full max-w-sm flex-col gap-4 rounded-lg border border-black/[.08] bg-white p-8 dark:border-white/[.145] dark:bg-zinc-900"
       >
-        <h1 className="font-serif text-2xl font-semibold text-black dark:text-zinc-50">Atlas</h1>
+        <h1 className="font-serif text-2xl font-semibold text-zinc-800 dark:text-zinc-200">Atlas</h1>
 
         <label className="flex flex-col gap-1 text-sm text-zinc-700 dark:text-zinc-300">
           Usuario
@@ -51,7 +51,7 @@ function LoginForm() {
             type="text"
             required
             autoComplete="username"
-            className="rounded border border-black/[.08] bg-transparent px-3 py-2 text-black dark:border-white/[.145] dark:text-zinc-50"
+            className="rounded border border-black/[.08] bg-transparent px-3 py-2 text-zinc-800 dark:border-white/[.145] dark:text-zinc-200"
           />
         </label>
 
@@ -62,7 +62,7 @@ function LoginForm() {
             type="password"
             required
             autoComplete="current-password"
-            className="rounded border border-black/[.08] bg-transparent px-3 py-2 text-black dark:border-white/[.145] dark:text-zinc-50"
+            className="rounded border border-black/[.08] bg-transparent px-3 py-2 text-zinc-800 dark:border-white/[.145] dark:text-zinc-200"
           />
         </label>
 

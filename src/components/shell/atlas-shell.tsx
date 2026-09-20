@@ -16,7 +16,7 @@ export function AtlasShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="relative flex flex-1 overflow-hidden bg-zinc-50 dark:bg-black">
+    <div className="relative flex flex-1 overflow-hidden bg-zinc-50 dark:bg-zinc-950">
       <div className="absolute left-3 top-3 z-30 sm:hidden">
         <button
           type="button"
@@ -39,14 +39,14 @@ export function AtlasShell({
         onClick={(event) => {
           if ((event.target as HTMLElement).closest("a")) setSidebarOpen(false);
         }}
-        className={`fixed inset-y-0 left-0 z-50 w-72 shrink-0 overflow-y-auto border-r border-black/[.08] bg-white transition-transform duration-200 dark:border-white/[.145] dark:bg-zinc-950 sm:static sm:z-auto sm:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 shrink-0 overflow-y-auto border-r border-black/[.08] bg-white transition-transform duration-200 dark:border-white/[.145] dark:bg-zinc-900 sm:static sm:z-auto sm:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <NavTree root={tree} />
       </aside>
 
-      <main className="flex flex-1 flex-col overflow-hidden bg-white dark:bg-zinc-950">
+      <main className="flex flex-1 flex-col overflow-hidden bg-white dark:bg-zinc-900">
         {children}
       </main>
       <SearchPalette />

@@ -100,7 +100,7 @@ export function SearchPalette() {
       onClick={() => setOpen(false)}
     >
       <div
-        className="w-full max-w-lg overflow-hidden rounded-lg border border-black/[.08] bg-white shadow-xl dark:border-white/[.145] dark:bg-zinc-900"
+        className="w-full max-w-lg overflow-hidden rounded-lg border border-black/[.08] bg-white shadow-xl dark:border-white/[.145] dark:bg-zinc-800"
         onClick={(event) => event.stopPropagation()}
       >
         <input
