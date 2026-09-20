@@ -13,12 +13,14 @@ import type { AtlasDocument, Frontmatter } from "@/types/atlas";
 
 type SaveStatus = "idle" | "saving" | "saved" | "error";
 type RightTab = "preview" | "historial" | "backlinks";
-type DesktopRightTab = "historial" | "backlinks";
+type DesktopRightTab = "historial" | "backlinks" | null;
 // En móvil solo se muestra una zona a la vez (editor o la pestaña
 // seleccionada). En escritorio siempre hay 2 columnas: sin editar,
 // izquierda = Preview y derecha = Historial/Backlinks; editando,
 // izquierda = editor y derecha = Preview. No hay cabecera global: cada
-// panel lleva sus propios controles.
+// panel lleva sus propios controles. Historial/Backlinks están colapsados
+// por defecto en escritorio (desktopRightTab = null): solo se despliegan
+// si el usuario pulsa el botón correspondiente.
 type MobileView = "editor" | "right";
 
 function apiPathFor(documentPath: string): string {
@@ -54,7 +56,7 @@ export function DocumentEditor({
   const [savedFrontmatter, setSavedFrontmatter] = useState<Frontmatter>(document.frontmatter);
   const [status, setStatus] = useState<SaveStatus>("idle");
   const [rightTab, setRightTab] = useState<RightTab>("preview");
-  const [desktopRightTab, setDesktopRightTab] = useState<DesktopRightTab>("historial");
+  const [desktopRightTab, setDesktopRightTab] = useState<DesktopRightTab>(null);
   const [mobileView, setMobileView] = useState<MobileView>("right");
   const [desktopEditing, setDesktopEditing] = useState(false);
 
@@ -341,27 +343,31 @@ export function DocumentEditor({
               <div className="flex border-b border-black/[.08] dark:border-white/[.145]">
                 <button
                   type="button"
-                  onClick={() => setDesktopRightTab("historial")}
+                  onClick={() => setDesktopRightTab(desktopRightTab === "historial" ? null : "historial")}
                   className={tabClass(desktopRightTab === "historial")}
                 >
-                  Historial
+                  {desktopRightTab === "historial" ? "▾ " : "▸ "}
+                  Ver historial
                 </button>
                 <button
                   type="button"
-                  onClick={() => setDesktopRightTab("backlinks")}
+                  onClick={() => setDesktopRightTab(desktopRightTab === "backlinks" ? null : "backlinks")}
                   className={tabClass(desktopRightTab === "backlinks")}
                 >
-                  Backlinks
+                  {desktopRightTab === "backlinks" ? "▾ " : "▸ "}
+                  Ver backlinks
                   {document.backlinks.length > 0 && ` (${document.backlinks.length})`}
                 </button>
               </div>
-              <div className="flex flex-1 flex-col overflow-hidden">
-                {desktopRightTab === "historial" ? (
-                  <HistoryPanel key={document.path} documentPath={document.path} />
-                ) : (
-                  <Backlinks paths={document.backlinks} />
-                )}
-              </div>
+              {desktopRightTab && (
+                <div className="flex flex-1 flex-col overflow-hidden">
+                  {desktopRightTab === "historial" ? (
+                    <HistoryPanel key={document.path} documentPath={document.path} />
+                  ) : (
+                    <Backlinks paths={document.backlinks} />
+                  )}
+                </div>
+              )}
             </>
           )}
         </div>
