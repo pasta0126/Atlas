@@ -15,6 +15,7 @@ import {
   FolderIcon,
   FolderOpenIcon,
   ImageIcon,
+  KanbanIcon,
   LockIcon,
   MoreHorizontalIcon,
   PaperclipIcon,
@@ -42,6 +43,12 @@ function joinPath(folder: string, name: string): string {
 
 function isSelfOrDescendant(ancestor: string, candidate: string): boolean {
   return candidate === ancestor || candidate.startsWith(`${ancestor}/`);
+}
+
+// Duplica la comprobación de lib/kanban.ts (que no se puede importar aquí:
+// depende de node:fs/node:crypto, incompatibles con un componente cliente).
+function isKanbanFolder(nodePath: string): boolean {
+  return basename(nodePath).toLowerCase() === "kanban";
 }
 
 const FILE_ICONS: Record<string, IconComponent> = {
@@ -73,6 +80,7 @@ function fileIconElement(title: string, className: string): React.JSX.Element {
 
 function nodeIconElement(node: AtlasNode, open: boolean | undefined, className: string): React.JSX.Element {
   if (node.type === "folder") {
+    if (isKanbanFolder(node.path)) return <KanbanIcon className={className} />;
     return open ? <FolderOpenIcon className={className} /> : <FolderIcon className={className} />;
   }
   if (node.type === "document") return <FileTextIcon className={className} />;

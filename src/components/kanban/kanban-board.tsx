@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { MoreHorizontalIcon, PlusIcon } from "@/components/icons";
+import { KanbanIcon, MoreHorizontalIcon, PlusIcon } from "@/components/icons";
 import { KanbanCardModal } from "./kanban-card-modal";
 import type { KanbanBoard as KanbanBoardData, KanbanCard, KanbanColumn } from "@/types/kanban";
 
@@ -174,7 +174,9 @@ export function KanbanBoard({
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
       <div className="flex items-center justify-between border-b border-border px-4 py-2">
-        <h1 className="text-sm font-medium text-zinc-800 dark:text-zinc-200">Kanban · {folderPath}</h1>
+        <h1 className="flex items-center gap-1.5 text-sm font-medium text-zinc-800 dark:text-zinc-200">
+          <KanbanIcon className="h-4 w-4" /> {folderPath}
+        </h1>
         <div className="flex items-center gap-3">
           {saveError && <span className="text-xs text-red-600 dark:text-red-400">Error al guardar</span>}
           <button

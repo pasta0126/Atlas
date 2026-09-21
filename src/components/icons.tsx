@@ -153,6 +153,17 @@ export function PlusIcon({ className }: IconProps) {
   );
 }
 
+export function KanbanIcon({ className }: IconProps) {
+  return (
+    <svg {...base} className={className}>
+      <rect x="3" y="3" width="18" height="18" rx="2" />
+      <path d="M8 7v6" />
+      <path d="M12 7v10" />
+      <path d="M16 7v3" />
+    </svg>
+  );
+}
+
 export function MenuIcon({ className }: IconProps) {
   return (
     <svg {...base} className={className}>
