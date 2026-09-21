@@ -16,13 +16,13 @@ export function AtlasShell({
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
-    <div className="relative flex flex-1 overflow-hidden bg-zinc-50 dark:bg-zinc-950">
+    <div className="relative flex flex-1 overflow-hidden bg-background">
       <div className="absolute left-3 top-3 z-30 sm:hidden">
         <button
           type="button"
           onClick={() => setSidebarOpen(true)}
           aria-label="Abrir navegación"
-          className="rounded border border-black/[.08] bg-white p-1.5 text-zinc-700 shadow-sm dark:border-white/[.145] dark:bg-zinc-900 dark:text-zinc-300"
+          className="rounded border border-border bg-surface p-1.5 text-zinc-700 shadow-sm dark:text-zinc-300"
         >
           <MenuIcon className="h-[18px] w-[18px]" />
         </button>
@@ -39,14 +39,14 @@ export function AtlasShell({
         onClick={(event) => {
           if ((event.target as HTMLElement).closest("a")) setSidebarOpen(false);
         }}
-        className={`fixed inset-y-0 left-0 z-50 w-72 shrink-0 overflow-y-auto border-r border-black/[.08] bg-white transition-transform duration-200 dark:border-white/[.145] dark:bg-zinc-900 sm:static sm:z-auto sm:translate-x-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 shrink-0 overflow-y-auto border-r border-border bg-surface transition-transform duration-200 sm:static sm:z-auto sm:translate-x-0 ${
           sidebarOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
         <NavTree root={tree} />
       </aside>
 
-      <main className="flex flex-1 flex-col overflow-hidden bg-white dark:bg-zinc-900">
+      <main className="flex flex-1 flex-col overflow-hidden bg-background">
         {children}
       </main>
       <SearchPalette />

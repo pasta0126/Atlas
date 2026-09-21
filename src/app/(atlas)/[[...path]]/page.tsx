@@ -2,8 +2,10 @@ import { notFound } from "next/navigation";
 import { folderExists, listDocumentPaths, resolveRouteDocument } from "@/lib/fs";
 import { readTextFile } from "@/lib/plain-files";
 import { classifyFile } from "@/lib/file-kind";
+import { isKanbanFolder, readBoard } from "@/lib/kanban";
 import { DocumentEditor } from "@/components/editor/document-editor";
 import { FileEditor } from "@/components/editor/file-editor";
+import { KanbanBoard } from "@/components/kanban/kanban-board";
 import { ImageViewer } from "@/components/viewer/image-viewer";
 import { MissingIndexPrompt } from "@/components/viewer/missing-index-prompt";
 
@@ -27,6 +29,11 @@ export default async function DocumentPage({
       notFound();
     }
     return <FileEditor key={routePath} path={routePath} content={content} />;
+  }
+
+  if (routePath && isKanbanFolder(routePath) && (await folderExists(routePath))) {
+    const board = await readBoard(routePath);
+    return <KanbanBoard key={routePath} folderPath={routePath} initialBoard={board} />;
   }
 
   const document = await resolveRouteDocument(segments).catch(() => null);

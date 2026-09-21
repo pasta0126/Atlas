@@ -1,13 +1,14 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { MarkdownEditor } from "./markdown-editor";
 import { MetadataPanel } from "./metadata-panel";
 import { PassphraseForm } from "./passphrase-form";
 import { Preview } from "@/components/preview/preview";
 import { HistoryPanel } from "@/components/history/history-panel";
 import { Backlinks } from "@/components/backlinks/backlinks";
-import { CheckIcon, LockIcon, PencilIcon, XIcon } from "@/components/icons";
+import { CheckIcon, LockIcon, PencilIcon, UploadIcon, XIcon } from "@/components/icons";
 import { decryptContent, encryptContent } from "@/lib/crypto";
 import type { AtlasDocument, Frontmatter } from "@/types/atlas";
 
@@ -25,6 +26,11 @@ type MobileView = "editor" | "right";
 
 function apiPathFor(documentPath: string): string {
   return `/api/docs/${documentPath.split("/").map(encodeURIComponent).join("/")}`;
+}
+
+function folderOf(documentPath: string): string {
+  const idx = documentPath.lastIndexOf("/");
+  return idx === -1 ? "." : documentPath.slice(0, idx);
 }
 
 function tabClass(active: boolean): string {
@@ -70,6 +76,30 @@ export function DocumentEditor({
   const [passphrase, setPassphrase] = useState<string | null>(null);
   const [showEnableForm, setShowEnableForm] = useState(false);
   const locked = isEncrypted && plaintext === null;
+  const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFileSelected(event: React.ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = "";
+    if (!file) return;
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append("folder", folderOf(document.path));
+      body.append("file", file);
+      const response = await fetch("/api/upload", { method: "POST", body });
+      if (response.ok) {
+        router.refresh();
+      } else {
+        const data = await response.json().catch(() => null);
+        window.alert(data?.error ?? "No se ha podido subir el fichero");
+      }
+    } finally {
+      setUploading(false);
+    }
+  }
 
   function startEditing() {
     if (locked) return;
@@ -205,6 +235,21 @@ export function DocumentEditor({
     );
   }
 
+  function renderUploadButton() {
+    return (
+      <button
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        disabled={uploading}
+        aria-label="Subir fichero"
+        title="Subir fichero a esta carpeta"
+        className={`${iconButtonClass} ${uploading ? iconButtonDisabledClass : ""}`}
+      >
+        <UploadIcon className="h-[18px] w-[18px]" />
+      </button>
+    );
+  }
+
   function renderMainContent() {
     if (locked) {
       return (
@@ -220,7 +265,7 @@ export function DocumentEditor({
     return (
       <>
         {isEncrypted && (
-          <div className="flex items-center justify-end gap-2 border-b border-black/[.08] px-2 py-1 dark:border-white/[.145]">
+          <div className="flex items-center justify-end gap-2 border-b border-border px-2 py-1">
             <button type="button" onClick={handleDisableEncryption} className={textButtonClass}>
               Quitar cifrado
             </button>
@@ -233,14 +278,15 @@ export function DocumentEditor({
 
   return (
     <div className="relative flex flex-1 flex-col overflow-hidden sm:flex-row">
+      <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelected} />
       <div
         className={`${mobileView === "editor" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:flex ${
-          desktopEditing ? "sm:border-r sm:border-black/[.08] sm:dark:border-white/[.145]" : ""
+          desktopEditing ? "sm:border-r sm:border-border" : ""
         }`}
       >
         {desktopEditing ? (
           <>
-            <div className="flex items-center justify-between gap-2 border-b border-black/[.08] py-1 pl-14 pr-2 dark:border-white/[.145] sm:pl-2">
+            <div className="flex items-center justify-between gap-2 border-b border-border py-1 pl-14 pr-2 sm:pl-2">
               <span className="text-xs text-zinc-500 dark:text-zinc-400">
                 {status === "saving" && "Guardando…"}
                 {status === "saved" && "Guardado"}
@@ -275,7 +321,8 @@ export function DocumentEditor({
           </>
         ) : (
           <>
-            <div className="flex items-center justify-end gap-2 border-b border-black/[.08] py-1 pr-2 dark:border-white/[.145]">
+            <div className="flex items-center justify-end gap-2 border-b border-border py-1 pr-2">
+              {renderUploadButton()}
               {renderEncryptToggle()}
               <button
                 type="button"
@@ -294,7 +341,7 @@ export function DocumentEditor({
       </div>
       {/* Móvil: pestañas Preview/Historial/Backlinks, una zona a la vez. */}
       <div className={`${mobileView === "right" ? "flex" : "hidden"} flex-1 flex-col overflow-hidden sm:hidden`}>
-        <div className="flex items-center justify-between border-b border-black/[.08] pl-14 pr-2 dark:border-white/[.145]">
+        <div className="flex items-center justify-between border-b border-border pl-14 pr-2">
           <div className="flex">
             <button type="button" onClick={() => setRightTab("preview")} className={tabClass(rightTab === "preview")}>
               Preview
@@ -316,6 +363,7 @@ export function DocumentEditor({
             </button>
           </div>
           <div className="flex items-center gap-1">
+            {rightTab === "preview" && renderUploadButton()}
             {rightTab === "preview" && renderEncryptToggle()}
             <button
               type="button"
@@ -348,7 +396,7 @@ export function DocumentEditor({
           encima de la vista previa (no reparte el ancho con ella). */}
       {!desktopEditing && (
         <>
-          <div className="hidden shrink-0 flex-col border-l border-black/[.08] dark:border-white/[.145] sm:flex">
+          <div className="hidden shrink-0 flex-col border-l border-border sm:flex">
             <button
               type="button"
               onClick={() => setDesktopRightTab(desktopRightTab === "historial" ? null : "historial")}
@@ -375,8 +423,8 @@ export function DocumentEditor({
             </button>
           </div>
           {desktopRightTab && (
-            <div className="absolute inset-y-0 right-9 z-10 hidden w-full max-w-md flex-col border-l border-black/[.08] bg-background shadow-xl dark:border-white/[.145] sm:flex">
-              <div className="flex items-center justify-between border-b border-black/[.08] px-3 py-1.5 dark:border-white/[.145]">
+            <div className="absolute inset-y-0 right-9 z-10 hidden w-full max-w-md flex-col border-l border-border bg-background shadow-xl sm:flex">
+              <div className="flex items-center justify-between border-b border-border px-3 py-1.5">
                 <span className="text-xs font-medium text-zinc-800 dark:text-zinc-200">
                   {desktopRightTab === "historial" ? "Historial" : "Backlinks"}
                 </span>

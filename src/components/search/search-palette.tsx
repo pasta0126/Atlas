@@ -100,7 +100,7 @@ export function SearchPalette() {
       onClick={() => setOpen(false)}
     >
       <div
-        className="w-full max-w-lg overflow-hidden rounded-lg border border-black/[.08] bg-white shadow-xl dark:border-white/[.145] dark:bg-zinc-800"
+        className="w-full max-w-lg overflow-hidden rounded-lg border border-border bg-surface shadow-xl"
         onClick={(event) => event.stopPropagation()}
       >
         <input
@@ -109,7 +109,7 @@ export function SearchPalette() {
           onChange={(event) => handleQueryChange(event.target.value)}
           onKeyDown={handleInputKeyDown}
           placeholder="Buscar por título, ruta o contenido…"
-          className="w-full border-b border-black/[.08] bg-transparent px-4 py-3 text-sm outline-none dark:border-white/[.145]"
+          className="w-full border-b border-border bg-transparent px-4 py-3 text-sm outline-none"
         />
         <ul className="max-h-80 overflow-y-auto">
           {results.map((result, index) => (
@@ -119,7 +119,7 @@ export function SearchPalette() {
                 onClick={() => goTo(result)}
                 onMouseEnter={() => setActiveIndex(index)}
                 className={`block w-full px-4 py-2 text-left ${
-                  index === activeIndex ? "bg-zinc-100 dark:bg-zinc-800" : ""
+                  index === activeIndex ? "bg-surface-hover" : ""
                 }`}
               >
                 <div className="truncate text-sm font-medium text-zinc-800 dark:text-zinc-200">

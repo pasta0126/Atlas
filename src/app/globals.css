@@ -4,11 +4,18 @@
 :root {
   --background: #fafafa;
   --foreground: #27272a;
+  /* Superficies elevadas (sidebar, tarjetas, menús) por encima del fondo. */
+  --surface: #f2f2f3;
+  --surface-hover: #e6e6e8;
+  --border: rgba(0, 0, 0, 0.08);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-hover: var(--surface-hover);
+  --color-border: var(--border);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --font-serif: var(--font-content-serif);
@@ -16,8 +23,13 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #18181b;
-    --foreground: #d4d4d8;
+    /* Grises intermedios en vez de casi-negro/casi-blanco: menos fatiga visual
+       manteniendo contraste suficiente para leer. */
+    --background: #202023;
+    --foreground: #c9c9ce;
+    --surface: #2a2a2e;
+    --surface-hover: #343438;
+    --border: rgba(255, 255, 255, 0.1);
   }
 }
 

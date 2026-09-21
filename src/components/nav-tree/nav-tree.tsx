@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { AtlasNode } from "@/types/atlas";
 import { classifyFile } from "@/lib/file-kind";
 import {
@@ -157,12 +157,24 @@ async function deleteFolder(relativePath: string, force: boolean): Promise<"ok" 
 }
 
 function NodeMenu({ children }: { children: React.ReactNode }) {
+  const detailsRef = useRef<HTMLDetailsElement>(null);
+
   return (
-    <details className="relative shrink-0 opacity-0 group-hover:opacity-100 [&[open]]:opacity-100">
+    <details
+      ref={detailsRef}
+      className="relative shrink-0 opacity-0 group-hover:opacity-100 [&[open]]:opacity-100"
+      onClick={(event) => {
+        // Cierra el menú tras pulsar cualquier opción interior (los <button>
+        // no cierran un <details> por sí solos como sí hace <summary>).
+        if ((event.target as HTMLElement).closest("button")) {
+          detailsRef.current?.removeAttribute("open");
+        }
+      }}
+    >
       <summary className="flex cursor-pointer list-none items-center rounded px-1 py-0.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">
         <MoreHorizontalIcon className="h-4 w-4" />
       </summary>
-      <div className="absolute right-0 z-10 mt-1 flex flex-col gap-0.5 rounded border border-black/[.08] bg-white p-1 text-xs shadow-lg dark:border-white/[.145] dark:bg-zinc-800">
+      <div className="absolute right-0 z-10 mt-1 flex flex-col gap-0.5 rounded border border-border bg-surface p-1 text-xs shadow-lg">
         {children}
       </div>
     </details>
@@ -174,7 +186,7 @@ function MenuButton({ onClick, danger, children }: { onClick: () => void; danger
     <button
       type="button"
       onClick={onClick}
-      className={`whitespace-nowrap rounded px-2 py-1 text-left hover:bg-zinc-100 dark:hover:bg-zinc-800 ${
+      className={`whitespace-nowrap rounded px-2 py-1 text-left hover:bg-surface-hover ${
         danger ? "text-red-600 dark:text-red-400" : "text-zinc-700 dark:text-zinc-300"
       }`}
     >
@@ -202,8 +214,8 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
 
   const linkClassName = `flex items-center gap-1.5 truncate rounded px-2 py-1 text-sm ${
     isActive
-      ? "bg-zinc-200 font-medium text-zinc-800 ring-1 ring-inset ring-zinc-400 dark:bg-zinc-800 dark:text-zinc-200 dark:ring-zinc-600"
-      : "text-zinc-700 hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-900"
+      ? "bg-surface-hover font-medium text-zinc-800 ring-1 ring-inset ring-zinc-400 dark:text-zinc-200 dark:ring-zinc-600"
+      : "text-zinc-700 hover:bg-surface-hover dark:text-zinc-300"
   }`;
 
   async function handleRenameOrMove() {
@@ -449,36 +461,36 @@ export function NavTree({ root }: { root: AtlasNode }) {
     <nav className="flex h-full flex-col overflow-y-auto p-3">
       <Link
         href="/"
-        className="mb-2 flex items-center gap-2 truncate rounded px-2 py-1 text-sm font-semibold tracking-tight text-zinc-800 hover:bg-black/[.04] dark:text-zinc-100 dark:hover:bg-white/[.06]"
+        className="mb-2 flex items-center gap-2 truncate rounded px-2 py-1 text-sm font-semibold tracking-tight text-zinc-800 hover:bg-surface-hover dark:text-zinc-100"
       >
         <Image src="/logo.png" alt="" width={20} height={20} className="rounded" />
         Atlas
       </Link>
-      <div className="mb-2 grid grid-cols-2 gap-1 border-b border-black/[.08] pb-2 text-xs dark:border-white/[.145]">
+      <div className="mb-2 grid grid-cols-2 gap-1 border-b border-border pb-2 text-xs">
         <button
           type="button"
           onClick={handleNewDocument}
-          className="rounded px-2 py-1 text-left text-zinc-600 hover:bg-black/[.04] dark:text-zinc-400 dark:hover:bg-white/[.06]"
+          className="rounded px-2 py-1 text-left text-zinc-600 hover:bg-surface-hover dark:text-zinc-400"
         >
           + Documento
         </button>
         <button
           type="button"
           onClick={handleNewFolder}
-          className="rounded px-2 py-1 text-left text-zinc-600 hover:bg-black/[.04] dark:text-zinc-400 dark:hover:bg-white/[.06]"
+          className="rounded px-2 py-1 text-left text-zinc-600 hover:bg-surface-hover dark:text-zinc-400"
         >
           + Carpeta
         </button>
         <Link
           href="/etiquetas"
-          className="rounded px-2 py-1 text-zinc-600 hover:bg-black/[.04] dark:text-zinc-400 dark:hover:bg-white/[.06]"
+          className="rounded px-2 py-1 text-zinc-600 hover:bg-surface-hover dark:text-zinc-400"
         >
           Etiquetas
         </Link>
         <button
           type="button"
           onClick={() => window.dispatchEvent(new CustomEvent("atlas:open-search"))}
-          className="rounded px-2 py-1 text-left text-zinc-600 hover:bg-black/[.04] dark:text-zinc-400 dark:hover:bg-white/[.06]"
+          className="rounded px-2 py-1 text-left text-zinc-600 hover:bg-surface-hover dark:text-zinc-400"
         >
           Buscar (Ctrl+K)
         </button>
@@ -498,7 +510,7 @@ export function NavTree({ root }: { root: AtlasNode }) {
       <button
         type="button"
         onClick={handleLogout}
-        className="mt-2 rounded px-2 py-1 text-left text-xs text-zinc-500 hover:bg-black/[.04] dark:text-zinc-400 dark:hover:bg-white/[.06]"
+        className="mt-2 rounded px-2 py-1 text-left text-xs text-zinc-500 hover:bg-surface-hover dark:text-zinc-400"
       >
         Cerrar sesión
       </button>

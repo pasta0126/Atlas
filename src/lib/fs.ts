@@ -216,6 +216,33 @@ export async function deleteFolder(
   await fsp.rm(absolutePath, { recursive: true, force: true });
 }
 
+/**
+ * Guarda un fichero subido dentro de `folderRelativePath`. Si el nombre ya
+ * existe se le añade un sufijo numérico para no sobrescribir nada.
+ * Devuelve la ruta relativa final del fichero guardado.
+ */
+export async function saveUploadedFile(
+  folderRelativePath: string,
+  filename: string,
+  data: Buffer,
+): Promise<string> {
+  const folderAbsolute = resolveContentPath(folderRelativePath);
+  await fsp.mkdir(folderAbsolute, { recursive: true });
+
+  const ext = path.extname(filename);
+  const base = path.basename(filename, ext);
+  let candidateName = filename;
+  let suffix = 1;
+  while (await pathExists(path.join(folderAbsolute, candidateName))) {
+    candidateName = `${base}-${suffix}${ext}`;
+    suffix += 1;
+  }
+
+  const absolutePath = path.join(folderAbsolute, candidateName);
+  await fsp.writeFile(absolutePath, data);
+  return toRelativePath(absolutePath);
+}
+
 /** Mueve o renombra un documento o carpeta dentro de CONTENT_DIR. */
 export async function movePath(
   fromRelativePath: string,
