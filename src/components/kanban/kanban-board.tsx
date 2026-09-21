@@ -1,9 +1,21 @@
 "use client";
 
 import { useState } from "react";
-import { KanbanIcon, MoreHorizontalIcon, PlusIcon } from "@/components/icons";
+import {
+  CheckIcon,
+  ClockIcon,
+  CircleIcon,
+  InboxIcon,
+  KanbanIcon,
+  LockIcon,
+  MoreHorizontalIcon,
+  PlusIcon,
+  XIcon,
+} from "@/components/icons";
 import { KanbanCardModal } from "./kanban-card-modal";
 import type { KanbanBoard as KanbanBoardData, KanbanCard, KanbanColumn } from "@/types/kanban";
+
+type IconComponent = (props: { className?: string }) => React.JSX.Element;
 
 const DRAG_MIME_TYPE = "application/x-atlas-kanban-card";
 
@@ -28,6 +40,40 @@ function apiPathFor(folderPath: string): string {
 function isOverdue(card: KanbanCard): boolean {
   if (!card.dueDate) return false;
   return card.dueDate < todayIso();
+}
+
+const PURGEABLE_COLUMN_NAMES = new Set(["hecho", "descartados"]);
+
+function isPurgeableColumn(name: string): boolean {
+  return PURGEABLE_COLUMN_NAMES.has(name.trim().toLowerCase());
+}
+
+const COLUMN_ICONS: Record<string, IconComponent> = {
+  backlog: InboxIcon,
+  "por hacer": CircleIcon,
+  "en progreso": ClockIcon,
+  bloqueado: LockIcon,
+  hecho: CheckIcon,
+  descartados: XIcon,
+};
+
+function columnIcon(name: string): IconComponent | undefined {
+  return COLUMN_ICONS[name.trim().toLowerCase()];
+}
+
+// Hash determinístico simple (FNV-1a) para asignar siempre el mismo color a
+// una misma etiqueta, y así poder agrupar tarjetas visualmente por tag.
+const TAG_HUE_COUNT = 8;
+
+function tagHueClass(tag: string): string {
+  let hash = 0x811c9dc5;
+  const normalized = tag.trim().toLowerCase();
+  for (let i = 0; i < normalized.length; i++) {
+    hash ^= normalized.charCodeAt(i);
+    hash = Math.imul(hash, 0x01000193);
+  }
+  const hue = (hash >>> 0) % TAG_HUE_COUNT;
+  return `tag-hue-${hue + 1}`;
 }
 
 export function KanbanBoard({
@@ -83,6 +129,15 @@ export function KanbanBoard({
       return;
     }
     persist({ columns: board.columns.filter((c) => c.id !== columnId) });
+  }
+
+  function purgeColumn(columnId: string) {
+    const column = board.columns.find((c) => c.id === columnId);
+    if (!column || column.cards.length === 0) return;
+    if (!window.confirm(`¿Vaciar "${column.name}"? Se eliminarán sus ${column.cards.length} tarjeta(s).`)) return;
+    persist({
+      columns: board.columns.map((c) => (c.id === columnId ? { ...c, cards: [] } : c)),
+    });
   }
 
   function openNewCard(columnId: string) {
@@ -204,8 +259,13 @@ export function KanbanBoard({
             }`}
           >
             <div className="group flex items-center justify-between gap-1 px-2 py-2">
-              <span className="truncate text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-400">
-                {column.name} <span className="font-normal normal-case">({column.cards.length})</span>
+              <span className="flex min-w-0 items-center gap-1.5 truncate text-xs font-semibold uppercase tracking-wide text-zinc-600 dark:text-zinc-400">
+                {(() => {
+                  const Icon = columnIcon(column.name);
+                  return Icon ? <Icon className="h-3.5 w-3.5 shrink-0" /> : null;
+                })()}
+                <span className="truncate">{column.name}</span>
+                <span className="shrink-0 font-normal normal-case">({column.cards.length})</span>
               </span>
               <details className="relative shrink-0 opacity-0 group-hover:opacity-100 [&[open]]:opacity-100">
                 <summary className="flex cursor-pointer list-none items-center rounded px-1 py-0.5 text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200">
@@ -226,6 +286,16 @@ export function KanbanBoard({
                   >
                     Renombrar
                   </button>
+                  {isPurgeableColumn(column.name) && (
+                    <button
+                      type="button"
+                      onClick={() => purgeColumn(column.id)}
+                      disabled={column.cards.length === 0}
+                      className="whitespace-nowrap rounded px-2 py-1 text-left text-zinc-700 hover:bg-surface-hover disabled:opacity-40 disabled:hover:bg-transparent dark:text-zinc-300"
+                    >
+                      Purgar tarjetas
+                    </button>
+                  )}
                   <button
                     type="button"
                     onClick={() => deleteColumn(column.id)}
@@ -266,10 +336,7 @@ export function KanbanBoard({
                         </span>
                       )}
                       {card.tags.map((tag) => (
-                        <span
-                          key={tag}
-                          className="rounded px-1.5 py-0.5 text-[10px] bg-surface-hover text-zinc-600 dark:text-zinc-300"
-                        >
+                        <span key={tag} className={`rounded px-1.5 py-0.5 text-[10px] ${tagHueClass(tag)}`}>
                           {tag}
                         </span>
                       ))}

@@ -38,3 +38,29 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
 }
+
+/*
+ * Paleta categórica (8 tonos) para colorear etiquetas del kanban de forma
+ * determinística según su texto (ver tagHueClass en kanban-board.tsx), para
+ * poder agrupar tarjetas visualmente por etiqueta. Los valores light/dark son
+ * los mismos 8 tonos ya escalonados para cada superficie.
+ */
+.tag-hue-1 { background: #2a78d6; color: #fff; }
+.tag-hue-2 { background: #eb6834; color: #fff; }
+.tag-hue-3 { background: #1baf7a; color: #fff; }
+.tag-hue-4 { background: #eda100; color: #fff; }
+.tag-hue-5 { background: #e87ba4; color: #fff; }
+.tag-hue-6 { background: #008300; color: #fff; }
+.tag-hue-7 { background: #4a3aa7; color: #fff; }
+.tag-hue-8 { background: #e34948; color: #fff; }
+
+@media (prefers-color-scheme: dark) {
+  .tag-hue-1 { background: #3987e5; }
+  .tag-hue-2 { background: #d95926; }
+  .tag-hue-3 { background: #199e70; }
+  .tag-hue-4 { background: #c98500; }
+  .tag-hue-5 { background: #d55181; }
+  .tag-hue-6 { background: #008300; }
+  .tag-hue-7 { background: #9085e9; }
+  .tag-hue-8 { background: #e66767; }
+}

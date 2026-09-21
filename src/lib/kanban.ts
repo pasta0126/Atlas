@@ -6,7 +6,7 @@ import type { KanbanBoard, KanbanCard, KanbanColumn } from "@/types/kanban";
 
 const BOARD_FILE = "board.md";
 const ID_COMMENT = /<!--\s*id:([a-zA-Z0-9_-]+)\s*-->/;
-const DEFAULT_COLUMN_NAMES = ["Por hacer", "En progreso", "Hecho"];
+const DEFAULT_COLUMN_NAMES = ["Backlog", "Por hacer", "En progreso", "Bloqueado", "Hecho", "Descartados"];
 
 function shortId(): string {
   return randomUUID().slice(0, 8);
