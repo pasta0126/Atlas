@@ -54,6 +54,16 @@ function isPurgeableColumn(name: string): boolean {
   return PURGEABLE_COLUMN_NAMES.has(name.trim().toLowerCase());
 }
 
+const DEFAULT_COLLAPSED_COLUMN_NAMES = new Set(["backlog", "descartados"]);
+
+function defaultCollapsedIds(board: KanbanBoardData): Set<string> {
+  return new Set(
+    board.columns
+      .filter((column) => DEFAULT_COLLAPSED_COLUMN_NAMES.has(column.name.trim().toLowerCase()))
+      .map((column) => column.id),
+  );
+}
+
 const COLUMN_ICONS: Record<string, IconComponent> = {
   backlog: InboxIcon,
   "por hacer": CircleIcon,
@@ -97,7 +107,9 @@ export function KanbanBoard({
   } | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<string | null>(null);
   const [saveError, setSaveError] = useState(false);
-  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(new Set());
+  const [collapsedColumns, setCollapsedColumns] = useState<Set<string>>(() =>
+    defaultCollapsedIds(initialBoard),
+  );
 
   function toggleCollapse(columnId: string) {
     setCollapsedColumns((prev) => {
