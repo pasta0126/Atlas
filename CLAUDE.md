@@ -43,7 +43,8 @@ Tests live alongside the lib they cover, under `src/lib/__tests__/`, and use
 Copy `.env.example` to `.env.local`. Required vars: `CONTENT_DIR` (absolute
 path to the content folder, independent repo), `AUTH_USER`,
 `AUTH_PASSWORD_HASH` (bcrypt, generate with `npx bcrypt-cli`),
-`SESSION_SECRET`, `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`.
+`SESSION_SECRET`, `GIT_AUTHOR_NAME`, `GIT_AUTHOR_EMAIL`. Optional:
+`INBOX_TOKEN_HASH` (sha256 hex of the token for `/api/inbox`).
 
 **If the bcrypt hash contains `$`, escape it as `\$` in `.env.local`**,
 otherwise Next.js interprets it as a variable reference.
@@ -88,6 +89,13 @@ Key modules in `src/lib/`:
   search index stale until the process restarts.
 - **`auth.ts`** — single-user session (signed cookie), verified in
   `src/proxy.ts` for every route except `/login` and `/api/auth/login`.
+- **`inbox.ts`** + `POST /api/inbox` — quick note capture without the
+  browser (e.g. `curl` from a machine where Zscaler blocks the web UI but
+  not the API). Creates `inbox/<YYYY-MM-DD-HHmmss>[-slug].md` (Madrid time,
+  tag `inbox`, never overwrites) and commits it. Authenticated by
+  `Authorization: Bearer <token>` checked against `INBOX_TOKEN_HASH`
+  (`verifyInboxToken` in `auth.ts`) or the normal session cookie; the token
+  can only create inbox notes. Windows client: `scripts/nota.ps1`.
 - **`slug.ts`** — slugify used as the naming convention for content in
   `CONTENT_DIR` (lowercase ascii, `-` for spaces, no accents), applied by
   convention/by hand to content, not enforced by the app.
@@ -130,7 +138,10 @@ interface AtlasDocument {
 - Session cookie is `httpOnly`, `secure`, `sameSite=strict`, signed with
   `SESSION_SECRET`.
 - Every route except `/login` and `/api/auth/login` requires a valid session
-  (enforced in `src/proxy.ts`).
+  (enforced in `src/proxy.ts`). The one exception is `/api/inbox`, public in
+  the proxy because it authenticates itself (inbox token or session) — keep
+  that token scoped to creating inbox notes only; never let it read, edit,
+  move or delete content.
 - For encrypted documents, the API routes are intentionally passphrase-blind:
   `content` is treated as an opaque string end-to-end. Never add server-side
   decryption or a passphrase-recovery path — that would break the

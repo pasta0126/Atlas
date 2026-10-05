@@ -61,3 +61,22 @@ export function verifySessionToken(token: string | undefined | null): boolean {
     return false;
   }
 }
+
+/**
+ * Verifica la cabecera `Authorization: Bearer <token>` contra
+ * `INBOX_TOKEN_HASH` (sha256 hex del token). Es un token aparte de la
+ * contraseña y solo lo acepta `/api/inbox` (crear notas, nada más), para
+ * poder usarlo desde equipos en los que no te fías de meter la contraseña
+ * real. Si la variable no está configurada, el inbox queda deshabilitado.
+ */
+export function verifyInboxToken(authorizationHeader: string | null): boolean {
+  const expectedHash = process.env.INBOX_TOKEN_HASH;
+  if (!expectedHash || !authorizationHeader) return false;
+
+  const match = /^Bearer\s+(\S+)$/i.exec(authorizationHeader.trim());
+  if (!match) return false;
+
+  const receivedHash = crypto.createHash("sha256").update(match[1]).digest();
+  const expected = Buffer.from(expectedHash.trim().toLowerCase(), "hex");
+  return expected.length === receivedHash.length && crypto.timingSafeEqual(expected, receivedHash);
+}

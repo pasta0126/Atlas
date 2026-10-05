@@ -1,8 +1,10 @@
 import { describe, expect, it, beforeEach, afterEach } from "vitest";
+import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import {
   createSessionToken,
   verifyCredentials,
+  verifyInboxToken,
   verifySessionToken,
 } from "../auth";
 
@@ -53,6 +55,27 @@ describe("auth", () => {
       const token = createSessionToken("pasta0126");
       process.env.SESSION_SECRET = "otro-secreto";
       expect(verifySessionToken(token)).toBe(false);
+    });
+  });
+
+  describe("verifyInboxToken", () => {
+    beforeEach(() => {
+      process.env.INBOX_TOKEN_HASH = crypto.createHash("sha256").update("token-bueno").digest("hex");
+    });
+
+    it("acepta el token correcto", () => {
+      expect(verifyInboxToken("Bearer token-bueno")).toBe(true);
+    });
+
+    it("rechaza un token incorrecto, mal formado o ausente", () => {
+      expect(verifyInboxToken("Bearer token-malo")).toBe(false);
+      expect(verifyInboxToken("token-bueno")).toBe(false);
+      expect(verifyInboxToken(null)).toBe(false);
+    });
+
+    it("queda deshabilitado si INBOX_TOKEN_HASH no está configurado", () => {
+      delete process.env.INBOX_TOKEN_HASH;
+      expect(verifyInboxToken("Bearer token-bueno")).toBe(false);
     });
   });
 });
