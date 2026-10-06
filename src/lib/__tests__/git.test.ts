@@ -40,6 +40,15 @@ describe("git", () => {
     const commits = await history("nota.md");
     expect(commits).toHaveLength(1);
     expect(commits[0].message).toBe("crear: nota.md");
+
+    const author = await simpleGit(repoDir).raw([
+      "log",
+      "-1",
+      "--format=%an <%ae>|%cn <%ce>",
+    ]);
+    expect(author.trim()).toBe(
+      "Atlas Bot <atlas-bot@example.com>|Atlas Bot <atlas-bot@example.com>",
+    );
   });
 
   it("no genera un commit si no hay cambios que comitear", async () => {
@@ -80,11 +89,17 @@ describe("git", () => {
     await commitChange("nota.md", "crear: nota.md");
 
     await fsp.mkdir(path.join(contentDir, "sub"));
-    await fsp.rename(path.join(contentDir, "nota.md"), path.join(contentDir, "sub", "nota.md"));
+    await fsp.rename(
+      path.join(contentDir, "nota.md"),
+      path.join(contentDir, "sub", "nota.md"),
+    );
     await commitChange(["nota.md", "sub/nota.md"], "mover: nota.md -> sub/nota.md");
 
     const commits = await history("sub/nota.md");
-    expect(commits.map((c) => c.message)).toEqual(["mover: nota.md -> sub/nota.md", "crear: nota.md"]);
+    expect(commits.map((c) => c.message)).toEqual([
+      "mover: nota.md -> sub/nota.md",
+      "crear: nota.md",
+    ]);
   });
 
   it("no lanza si CONTENT_DIR no está dentro de un repo git", async () => {
