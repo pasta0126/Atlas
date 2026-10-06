@@ -402,7 +402,7 @@ function NavNode({ node, depth }: { node: AtlasNode; depth: number }) {
   );
 }
 
-export function NavTree({ root }: { root: AtlasNode }) {
+export function NavTree({ root, headerAction }: { root: AtlasNode; headerAction?: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [isRootDropTarget, setIsRootDropTarget] = useState(false);
@@ -467,13 +467,16 @@ export function NavTree({ root }: { root: AtlasNode }) {
 
   return (
     <nav className="flex h-full flex-col overflow-y-auto p-3">
-      <Link
-        href="/"
-        className="mb-2 flex items-center gap-2 truncate rounded px-2 py-1 text-sm font-semibold tracking-tight text-zinc-800 hover:bg-surface-hover dark:text-zinc-100"
-      >
-        <Image src="/logo.png" alt="" width={20} height={20} className="rounded" />
-        Atlas
-      </Link>
+      <div className="mb-2 flex items-center gap-1">
+        <Link
+          href="/"
+          className="flex min-w-0 flex-1 items-center gap-2 truncate rounded px-2 py-1 text-sm font-semibold tracking-tight text-zinc-800 hover:bg-surface-hover dark:text-zinc-100"
+        >
+          <Image src="/logo.png" alt="" width={20} height={20} className="rounded" />
+          Atlas
+        </Link>
+        {headerAction}
+      </div>
       <div className="mb-2 grid grid-cols-2 gap-1 border-b border-border pb-2 text-xs">
         <button
           type="button"
