@@ -1,10 +1,11 @@
 "use client";
 
 import CodeMirror from "@uiw/react-codemirror";
-import { EditorView } from "@codemirror/view";
+import { EditorView, scrollPastEnd } from "@codemirror/view";
 import { useEffect, useState } from "react";
 
-const extensions = [EditorView.lineWrapping];
+// `scrollPastEnd`: ver markdown-editor.tsx.
+const extensions = [EditorView.lineWrapping, scrollPastEnd()];
 
 export function PlainTextEditor({
   value,

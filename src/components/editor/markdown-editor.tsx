@@ -3,10 +3,17 @@
 import CodeMirror from "@uiw/react-codemirror";
 import { markdown } from "@codemirror/lang-markdown";
 import { languages } from "@codemirror/language-data";
-import { EditorView } from "@codemirror/view";
+import { EditorView, scrollPastEnd } from "@codemirror/view";
 import { useEffect, useState } from "react";
 
-const extensions = [markdown({ codeLanguages: languages }), EditorView.lineWrapping];
+const extensions = [
+  markdown({ codeLanguages: languages }),
+  EditorView.lineWrapping,
+  // Permite hacer scroll hasta dejar la última línea arriba del todo (como
+  // `scrollBeyondLastLine` en VSCode), para no escribir siempre pegado al
+  // borde inferior de la pantalla.
+  scrollPastEnd(),
+];
 
 export function MarkdownEditor({
   value,

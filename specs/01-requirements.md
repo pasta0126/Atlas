@@ -120,6 +120,17 @@ móviles nativas.
 - EL SISTEMA DEBERÁ excluir el cuerpo de los documentos cifrados de la
   búsqueda de texto completo (solo título/ruta siguen siendo buscables).
 
+### 3.9 Ergonomía del editor
+
+- EL SISTEMA DEBERÁ permitir hacer scroll en el editor más allá del final del
+  documento, hasta que la última línea quede en la parte superior del área
+  visible (comportamiento equivalente a `editor.scrollBeyondLastLine` de
+  VSCode), de forma que al escribir en textos largos la línea activa no quede
+  forzosamente pegada al borde inferior de la pantalla.
+- EL SISTEMA DEBERÁ aplicar este comportamiento por igual al editor Markdown y
+  al editor de texto plano, sin alterar el contenido del documento (el espacio
+  extra es solo visual, no se añaden líneas en blanco al archivo).
+
 ## 4. Requisitos no funcionales
 
 - **Simplicidad**: la interfaz no debe parecer una herramienta corporativa (Notion,

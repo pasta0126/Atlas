@@ -236,6 +236,17 @@ detallado_
       cifrado. Confirmado también que la búsqueda encuentra el documento
       cifrado por título pero no por contenido del ciphertext.
 
+## Fase 12 — Ergonomía del editor
+
+_Cubre: 3.9_
+
+- [x] 12.1 Añadir `scrollPastEnd()` a las extensiones de CodeMirror en
+      `components/editor/markdown-editor.tsx` y
+      `components/editor/plain-text-editor.tsx`.
+- [x] 12.2 Verificado en navegador: en un documento más largo que la
+      pantalla, el scroll del editor llega hasta dejar la última línea arriba
+      del todo; guardar no añade líneas en blanco al archivo.
+
 ---
 
 **Siguiente paso sugerido**: confirmar esta spec y empezar por la Fase 0 + Fase 1,

@@ -279,6 +279,14 @@ puede marcarse como cifrado para protegerlo con una frase secreta adicional
   chrome de UI mínimo.
 - Sin dashboards, sin métricas, sin gamificación. El foco visual es siempre el texto.
 - Modo oscuro/claro respetando preferencia del sistema.
+- Scroll más allá del final en el editor (req. 3.9): extensión
+  `scrollPastEnd()` de `@codemirror/view` en `markdown-editor.tsx` y
+  `plain-text-editor.tsx`. CodeMirror añade un relleno inferior igual a la
+  altura visible del scroller menos una línea, recalculado al redimensionar;
+  es puramente visual (no toca el documento ni el `value` que se guarda).
+  Funciona porque el editor tiene altura fija (`height="100%"`) y hace scroll
+  interno en `.cm-scroller` — si algún día el editor pasara a crecer con el
+  contenido, el relleno dejaría de tener efecto.
 
 ## 9. Despliegue en la infraestructura existente
 
